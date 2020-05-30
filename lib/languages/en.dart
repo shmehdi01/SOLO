@@ -1,0 +1,33 @@
+
+import 'strings_constants.dart';
+
+const Map<String,String> english = {
+  STR_EMAIL: 'Email',
+  STR_EMAIL_MOBILE: "Email/Mobile",
+  STR_PASSWORD: "Password",
+  STR_CONFIRM_PASSWORD: "Confirm Password",
+  STR_LOGIN: "Login",
+  STR_FORGOT_PASSWORD: "Forgot Password",
+  STR_SIGN_UP: "Sign Up",
+  STR_NAME: "Name",
+  STR_CREATE_ACCOUNT: "Create Account",
+  STR_I_AGREE_TO_SOLO: "I agree to the Solo",
+  STR_TERMS_AND_SERVICE: "Terms and Service",
+  STR_AND: "and",
+  STR_PRIVACY_POLICY: "Privacy Policy",
+  STR_ADD_PROFILE_PICTURE: "Add a profile picture",
+  STR_ADD_PHOTO_FRIEND_FIND: "Add a photo so your friends can find you.",
+  STR_CHOOSE_PHOTO: "Choose Photo",
+  STR_TAKE_PHOTO: "Take Photo",
+  STR_SKIP: "Skip",
+  STR_USER_NOT_FOUND: "User not found",
+  STR_EMAIL_EMPTY: "Email is Empty",
+  STR_EMAIL_INVALID: "Email is not valid",
+  STR_PASS_EMPTY: "Password is empty",
+  STR_SEND_RESET: "Send Reset Link",
+  STR_PASS_VALIDATE: "Password must be 8 character",
+  STR_PASS_NOT_MATCHED: "Password is not matched",
+  STR_PLEASE_ACCEPT_AGREEMENT: "Please accept Terms and Conditions",
+  STR_NEXT: "Next",
+  STR_CONGRATULATIONS: "Congratulations !!",
+};

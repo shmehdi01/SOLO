@@ -1,0 +1,55 @@
+{
+  "project_info": {
+    "project_number": "899698660950",
+    "firebase_url": "https://solo-adcfe.firebaseio.com",
+    "project_id": "solo-adcfe",
+    "storage_bucket": "solo-adcfe.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:899698660950:android:4bb7a7243f3a613c07cdf7",
+        "android_client_info": {
+          "package_name": "com.solo"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "899698660950-gkvi3c0ljipf2dr64tl1eq2hj9kjqla6.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.solo",
+            "certificate_hash": "da03307b26ac6f669fbc7985267a5e5aa9f8a9c2"
+          }
+        },
+        {
+          "client_id": "899698660950-1319pklj64orbjdoojapaioe9q0emc59.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAHPgZ6rh2yjRkVA_naYuACrpOh5g4_ZnI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "899698660950-1319pklj64orbjdoojapaioe9q0emc59.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "899698660950-n0pp01rf6flnvunvclgod4toc45sspih.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.solo"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
