@@ -48,6 +48,7 @@ class HomeActionNotifier with ChangeNotifier {
     });
 
     await SessionManager.loadFriends();
+    notifyListeners();
   }
 
   Future<List<PostModel>> fetchPost() async {
