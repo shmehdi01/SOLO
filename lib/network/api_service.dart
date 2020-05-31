@@ -9,6 +9,7 @@ import 'package:solo/models/follow_detail.dart';
 import 'package:solo/models/notification_detail.dart';
 import 'package:solo/models/post_model.dart';
 import 'package:solo/models/user.dart';
+import 'package:solo/session_manager.dart';
 
 ///[ApiResponse] is use in whole app to calling api and getting response
 ///[T] is generic data type is use to get success from api
@@ -89,6 +90,10 @@ abstract class ProfileApi {
   Future<ApiResponse<void>> updatePushToken(User user);
 
   Future<ApiResponse<void>> updateBio(User user, String bio);
+
+  Future<ApiResponse<void>> changeBackground(User user, File file);
+
+  Future<ApiResponse<void>> deleteAccount();
 }
 
 ///[ExploreApi] implement explore api
@@ -125,9 +130,12 @@ abstract class HomeApi {
   Future<ApiResponse<User>> fetchUserByID(String id);
   Future<ApiResponse<void>> createPost(PostModel postModel, File imageFile);
   Future<ApiResponse<List<PostModel>>> fetchPosts();
-  Stream<List<PostModel>> fetchPostsStream();
+  Stream<List<PostModel>> fetchPostsStream({String onlyForID = ""});
   Future<ApiResponse<void>> likePost(User user, PostModel postModel, {bool removeLike = false});
   Future<ApiResponse<void>> commentPost(User user, PostModel postModel, Comment comment);
+  Future<ApiResponse<void>> deletePost(PostModel postModel);
+  Future<ApiResponse<void>> deleteComment(PostModel postModel, Comment comment);
+  Stream<ApiResponse<PostModel>> fetchSinglePost(String postId);
 }
 
 

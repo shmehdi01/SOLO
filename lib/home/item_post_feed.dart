@@ -1,12 +1,15 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:photo_view/photo_view.dart';
+import 'package:solo/database/app_constants.dart';
+import 'package:solo/helper/dialog_helper.dart';
 import 'package:solo/home/profile/profile_page.dart';
 import 'package:solo/location/locationPage.dart';
 import 'package:solo/models/post_model.dart';
 import 'package:solo/models/user.dart';
 import 'package:solo/network/api_provider.dart';
-//import 'package:zoomable_image/zoomable_image.dart';
+import 'package:solo/network/api_service.dart';
 
 import '../session_manager.dart';
 import '../utils.dart';
@@ -29,9 +32,12 @@ class ItemFeedPost extends StatelessWidget {
         maxLines: null,
         controller: commentEditController,
         decoration: InputDecoration(
-            prefixIcon: userImage(imageUrl: currentUser.photoUrl,radius: 12),
+            prefixIcon: userImage(imageUrl: currentUser.photoUrl, radius: 12),
             suffixIcon: IconButton(
-              icon: Icon(Icons.send),
+              icon: Icon(
+                Icons.send,
+                color: PRIMARY_COLOR,
+              ),
               onPressed: () {
                 if (commentEditController.text.isNotEmpty) {
                   Comment comment = Comment(
@@ -87,7 +93,11 @@ class ItemFeedPost extends StatelessWidget {
               SizedBox(
                 width: 15,
               ),
-              Text("${postModel.likes.length} ${postModel.likes.length > 1 ? "Likes" : "Like"}", style: TextStyle(color: isLikedByMe ? likeColor : Colors.black87),),
+              Text(
+                "${postModel.likes.length} ${postModel.likes.length > 1 ? "Likes" : "Like"}",
+                style:
+                    TextStyle(color: isLikedByMe ? likeColor : Colors.black87),
+              ),
               SizedBox(
                 width: 10,
               ),
@@ -95,7 +105,7 @@ class ItemFeedPost extends StatelessWidget {
                 padding: dimenAll(10),
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color:  isLikedByMe ? likeColor : Colors.blueGrey,
+                  color: isLikedByMe ? likeColor : Colors.blueGrey,
                 ),
                 child: Icon(
                   Icons.favorite,
@@ -113,8 +123,7 @@ class ItemFeedPost extends StatelessWidget {
     return Material(
       borderRadius: BorderRadius.all(Radius.circular(12)),
       elevation: 2,
-      child: Hero(
-        child: rectImage(imageUrl: postModel.imageUrl), tag: "image",),
+      child: rectImage(imageUrl: postModel.imageUrl),
     );
   }
 
@@ -159,9 +168,7 @@ class ItemFeedPost extends StatelessWidget {
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
-            SizedBox(
-              width: 240,
-                child: Text("${postModel.caption}")),
+            SizedBox(width: 240, child: Text("${postModel.caption}")),
             SizedBox(
               height: 10,
             ),
@@ -172,217 +179,356 @@ class ItemFeedPost extends StatelessWidget {
   }
 
   Widget singleComments(BuildContext context, Comment comment) {
-    return  Container(
+
+    return Container(
       margin: const EdgeInsets.only(bottom: 10),
       decoration: BoxDecoration(
-        color: Color(0xffF6F7F9),
-        borderRadius: BorderRadius.all(Radius.circular(23))
-
-      ),
-      child: ListTile(
+          color: Color(0xffF6F7F9),
+          borderRadius: BorderRadius.all(Radius.circular(23))),
+      child:  ListTile(
         onTap: () {
           _Utils.openCommentPage(context, postModel, this);
         },
         leading: userImage(imageUrl: comment.user.photoUrl, radius: 18),
         title: Padding(
           padding: const EdgeInsets.only(bottom: 4),
-          child: Text(comment.user.name, style: TextStyle(fontSize: FONT_SMALL, color: Colors.black, fontWeight: FontWeight.w700)),
+          child: Text(comment.user.name,
+              style: TextStyle(
+                  fontSize: FONT_SMALL,
+                  color: Colors.black,
+                  fontWeight: FontWeight.w700)),
         ),
         subtitle: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
-            Text(comment.comments, style: TextStyle(fontSize: FONT_NORMAL,)),
+            Text(comment.comments,
+                style: TextStyle(
+                  fontSize: FONT_NORMAL,
+                )),
             verticalGap(gap: 4),
-            if(comment.timestamp != null) Text(Utils.displayDate(comment.timestamp), style: TextStyle(fontSize: FONT_SMALL,)),
+            if (comment.timestamp != null)
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: <Widget>[
+                  Text(Utils.displayDate(comment.timestamp),
+                      style: TextStyle(
+                        fontSize: FONT_SMALL,
+                      )),
+                  horizontalGap(gap: 12),
+                  if (comment.user.id == SessionManager.currentUser.id)
+                    InkWell(
+                        onTap: () {
+                          showAlertDialog(
+                              context, "Delete Comment?", comment.comments,
+                              actions: [
+                                dialogButton(
+                                    buttonText: "Delete",
+                                    onPressed: () {
+                                      Navigator.pop(context);
+                                      ApiProvider.homeApi
+                                          .deleteComment(postModel, comment);
+                                    })
+                              ]);
+                        },
+                        child: Text(
+                          "Delete",
+                          style: TextStyle(
+                              color: Colors.red, fontSize: FONT_SMALL),
+                        ))
+                ],
+              ),
           ],
         ),
-      ),
+      )
+
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      margin: dimenAll(12),
-      width: MATCH_PARENT,
-      child: Stack(
-        children: <Widget>[
-          Card(
-            color: Color(0xfffefefe),
-            elevation: 2,
-            shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.all(Radius.circular(12))),
-            child: Container(
-              //color: Colors.redAccent,
-              padding: dimenAll(12),
-              child: Column(
-                children: <Widget>[
-                  InkWell(
-                    onTap: () {
-                      goToPage(
-                          context,
-                          ProfilePage(
-                            postModel.user,
-                            otherProfile: postModel.user.id !=
-                                SessionManager.currentUser.id,
-                            currentUser: SessionManager.currentUser,
-                          ));
-                    },
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    final init = ApiResponse<User>();
+    init.success = postModel.user;
+
+    return FutureBuilder(
+        initialData: init,
+        future: ApiProvider.homeApi.fetchUserByID(postModel.userId),
+        builder:
+            (BuildContext context, AsyncSnapshot<ApiResponse<User>> snapshot) {
+          postModel.user = snapshot.data.success;
+
+          return Container(
+            margin: dimenAll(12),
+            width: MATCH_PARENT,
+            child: Stack(
+              children: <Widget>[
+                Card(
+                  color: Color(0xfffefefe),
+                  elevation: 2,
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.all(Radius.circular(12))),
+                  child: Container(
+                    //color: Colors.redAccent,
+                    padding: dimenAll(12),
+                    child: Column(
                       children: <Widget>[
-                        userImage(
-                            imageUrl: postModel.user.photoUrl, radius: 20),
-                        Column(
-                          children: <Widget>[
-                            Text(
-                              postModel.user.name,
-                              style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: FONT_MEDIUM),
-                            ),
-                            verticalGap(gap: 4),
-                            Text(
-                              Utils.displayDate(postModel.timestamp),
-                              style: TextStyle(
-                                  fontSize: FONT_SMALL, color: Colors.grey),
-                            )
-                          ],
+                        InkWell(
+                          onTap: () {
+                            goToPage(
+                                context,
+                                ProfilePage(
+                                  postModel.user,
+                                  otherProfile: postModel.user.id !=
+                                      SessionManager.currentUser.id,
+                                  currentUser: SessionManager.currentUser,
+                                ));
+                          },
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: <Widget>[
+                              userImage(
+                                  imageUrl: postModel.user.photoUrl,
+                                  radius: 20),
+                              Column(
+                                children: <Widget>[
+                                  Text(
+                                    postModel.user.name,
+                                    style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: FONT_MEDIUM),
+                                  ),
+                                  verticalGap(gap: 4),
+                                  Text(
+                                    Utils.displayDate(postModel.timestamp),
+                                    style: TextStyle(
+                                        fontSize: FONT_SMALL,
+                                        color: Colors.grey),
+                                  )
+                                ],
+                              ),
+                              IconButton(
+                                  icon: Icon(Icons.more_vert),
+                                  onPressed: () {
+                                    DialogHelper.postItemOption(context,
+                                        postModel.userId == currentUser.id ? postItemMyOptions : postItemOtherOptions,
+                                        onAction: (str) {
+                                      if (str == AppConstant.DELETE_POST) {
+                                        DialogHelper.customAlertDialog(context,
+                                            title: "Confirm Deletion",
+                                            content: "Delete this post?",
+                                            positiveButton: "Delete",
+                                            negativeButton: "Don't Delete",
+                                            onConfrim: () async {
+                                          final resp = await ApiProvider.homeApi
+                                              .deletePost(postModel);
+                                          if (resp.hasError == false) {
+                                            Fluttertoast.showToast(
+                                                msg:
+                                                    "Post Deleted Successfully");
+                                          }
+                                        });
+                                        //DELETE POST
+                                      } else {
+                                        //REPORT
+                                      }
+                                    });
+                                  })
+                            ],
+                          ),
                         ),
-                        IconButton(
-                            icon: Icon(Icons.arrow_forward_ios),
-                            onPressed: null)
-                      ],
-                    ),
-                  ),
-                  Divider(),
-                  SizedBox(
-                    height: 12,
-                  ),
-                  Stack(
-                    children: <Widget>[
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: <Widget>[
+                        Divider(),
+                        SizedBox(
+                          height: 12,
+                        ),
+                        Stack(
+                          children: <Widget>[
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: <Widget>[
 //                          if (postModel.imageUrl == null ||
 //                              postModel.imageUrl.isEmpty)
-                            captionWidget(),
-                          postModel.imageUrl == null ||
-                                  postModel.imageUrl.isEmpty
-                              ? Container()
-                              : InkWell(
-                            onTap: () {
-                              showImageViewerDialog(context, postModel.imageUrl);
-                            },
-                              child: imageWidget()),
-                          SizedBox(
-                            height: 10,
-                          ),
-                          Container(
-                              width: 175,
-                              child: InkWell(
-                                  onTap: () {
-                                    _Utils.openCommentPage(context, postModel, this);
+                                captionWidget(),
+                                postModel.imageUrl == null ||
+                                        postModel.imageUrl.isEmpty
+                                    ? Container()
+                                    : InkWell(
+                                        onTap: () {
+                                          showImageViewerDialog(
+                                              context, postModel.imageUrl);
+                                        },
+                                        child: imageWidget()),
+                                SizedBox(
+                                  height: 10,
+                                ),
+                                Container(
+                                    width: 175,
+                                    child: InkWell(
+                                        onTap: () {
+                                          _Utils.openCommentPage(
+                                              context, postModel, this);
 //                                    Navigator.of(context).push(MaterialPageRoute(
 //                                        builder: (BuildContext context) {
 //                                          return BottomSheetComment(postModel,this);
 //                                        },
 //                                        fullscreenDialog: true
 //                                    ));
-                                  },
-                                  child: commentWidget())),
-                        ],
-                      ),
-                      Positioned(bottom: 30, right: 0, child: likeWidget())
-                    ],
+                                        },
+                                        child: commentWidget())),
+                              ],
+                            ),
+                            Positioned(
+                                bottom: 30, right: 0, child: likeWidget())
+                          ],
+                        ),
+                        // if (postModel.imageUrl.isNotEmpty) captionWidget(),
+                        SizedBox(
+                          height: 12,
+                        ),
+                        if (postModel.comments.length > 0)
+                          singleComments(
+                              context,
+                              postModel
+                                  .comments[postModel.comments.length - 1]),
+                        commentEditField(context),
+                      ],
+                    ),
                   ),
-                 // if (postModel.imageUrl.isNotEmpty) captionWidget(),
-                  SizedBox(
-                    height: 12,
-                  ),
-                  if(postModel.comments.length > 0) singleComments(context,postModel.comments[postModel.comments.length-1]),
-                  commentEditField(context),
-                ],
-              ),
+                ),
+              ],
             ),
-          ),
-        ],
-      ),
-    );
+          );
+        });
   }
-
 }
 
-class BottomSheetComment extends StatelessWidget {
+class BottomSheetComment extends StatefulWidget {
   final PostModel postModel;
   final ItemFeedPost itemFeedPost;
 
-
   BottomSheetComment(this.postModel, this.itemFeedPost);
 
+  @override
+  _BottomSheetCommentState createState() => _BottomSheetCommentState();
+}
+
+class _BottomSheetCommentState extends State<BottomSheetComment> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: SafeArea(
         child: Container(
           height: MediaQuery.of(context).size.height,
-          padding: const EdgeInsets.only(top: 40, left: 8,right: 8,bottom: 8),
+          padding: const EdgeInsets.only(top: 40, left: 8, right: 8, bottom: 8),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
               Text(
-                "${postModel.caption}",
-                style:
-                    TextStyle(fontSize: FONT_MEDIUM, fontWeight: FontWeight.w700),
+                "${widget.postModel.caption}",
+                style: TextStyle(
+                    fontSize: FONT_MEDIUM, fontWeight: FontWeight.w700),
               ),
               verticalGap(gap: 8),
               Row(
                 children: <Widget>[
-                  Text("${postModel.likes.length} Likes",
+                  Text("${widget.postModel.likes.length} Likes",
                       style: TextStyle(
                         fontSize: FONT_SMALL,
                       )),
                   horizontalGap(gap: 12),
-                  Text("${postModel.comments.length} Commetns",
+                  Text("${widget.postModel.comments.length} Commetns",
                       style: TextStyle(
                         fontSize: FONT_SMALL,
                       )),
                 ],
               ),
-              postModel.comments.length > 0
+              widget.postModel.comments.length > 0
                   ? Expanded(
                       child: Container(
                         margin: const EdgeInsets.only(top: 22),
                         child: ListView.builder(
-                            itemCount: postModel.comments.length,
+                            itemCount: widget.postModel.comments.length,
                             itemBuilder: (context, index) {
-                              final comment = postModel.comments[index];
+                              final comment = widget.postModel.comments[index];
 
                               return Container(
                                 margin: const EdgeInsets.only(top: 8),
                                 child: ListTile(
                                   leading: InkWell(
-                                    onTap: () {
-                                      goToPage(
-                                          context,
-                                          ProfilePage(
-                                            comment.user,
-                                            otherProfile: comment.user.id !=
-                                                SessionManager.currentUser.id,
-                                            currentUser: SessionManager.currentUser,
-                                          ));
-                                    },
-                                      child: userImage(imageUrl: comment.user.photoUrl, radius: 18)),
+                                      onTap: () {
+                                        goToPage(
+                                            context,
+                                            ProfilePage(
+                                              comment.user,
+                                              otherProfile: comment.user.id !=
+                                                  SessionManager.currentUser.id,
+                                              currentUser:
+                                                  SessionManager.currentUser,
+                                            ));
+                                      },
+                                      child: userImage(
+                                          imageUrl: comment.user.photoUrl,
+                                          radius: 18)),
                                   title: Padding(
                                     padding: const EdgeInsets.only(bottom: 4),
-                                    child: Text(comment.user.name, style: TextStyle(fontSize: FONT_SMALL, color: Colors.black, fontWeight: FontWeight.w700)),
+                                    child: Text(comment.user.name,
+                                        style: TextStyle(
+                                            fontSize: FONT_SMALL,
+                                            color: Colors.black,
+                                            fontWeight: FontWeight.w700)),
                                   ),
                                   subtitle: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: <Widget>[
-                                      Text(comment.comments, style: TextStyle(fontSize: FONT_NORMAL,)),
+                                      Text(comment.comments,
+                                          style: TextStyle(
+                                            fontSize: FONT_NORMAL,
+                                          )),
                                       verticalGap(gap: 4),
-                                      Text(Utils.displayDate(comment.timestamp), style: TextStyle(fontSize: FONT_SMALL,)),
+                                      Row(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.center,
+                                        children: <Widget>[
+                                          Text(
+                                              Utils.displayDate(
+                                                  comment.timestamp),
+                                              style: TextStyle(
+                                                fontSize: FONT_SMALL,
+                                              )),
+                                          horizontalGap(gap: 12),
+                                          if (comment.user.id ==
+                                              SessionManager.currentUser.id)
+                                            InkWell(
+                                                onTap: () {
+                                                  showAlertDialog(
+                                                      context,
+                                                      "Delete Comment?",
+                                                      comment.comments,
+                                                      actions: [
+                                                        dialogButton(
+                                                            buttonText:
+                                                                "Delete",
+                                                            onPressed: () {
+                                                              Navigator.pop(
+                                                                  context);
+                                                              ApiProvider
+                                                                  .homeApi
+                                                                  .deleteComment(
+                                                                      widget
+                                                                          .postModel,
+                                                                      comment);
+
+                                                              setState(() {});
+                                                            })
+                                                      ]);
+                                                },
+                                                child: Text(
+                                                  "Delete",
+                                                  style: TextStyle(
+                                                      color: Colors.red,
+                                                      fontSize: FONT_SMALL),
+                                                ))
+                                        ],
+                                      ),
                                     ],
                                   ),
                                 ),
@@ -394,7 +540,7 @@ class BottomSheetComment extends StatelessWidget {
                       child: Center(
                       child: Text("No Comments"),
                     )),
-              itemFeedPost.commentEditField(context)
+              widget.itemFeedPost.commentEditField(context)
             ],
           ),
         ),
@@ -403,34 +549,27 @@ class BottomSheetComment extends StatelessWidget {
   }
 }
 
-
 void showImageViewerDialog(BuildContext context, String url) {
   showDialog(
     context: context,
     child: Scaffold(
-      body: Hero(
-        child: Container(
+      body: Container(
           color: Colors.black,
-            child: Center(
-              child: PhotoView(
-                enableRotation: true,
-                 imageProvider: CachedNetworkImageProvider(url),
-              ),
-            )), tag: "image",
-      ),
+          child: Center(
+            child: PhotoView(
+              enableRotation: true,
+              imageProvider: CachedNetworkImageProvider(url),
+            ),
+          )),
     ),
   );
 }
 
-
 class _Utils {
-  
-  static openCommentPage(context, postModel,itemFeedPost) {
+  static openCommentPage(context, postModel, itemFeedPost) {
     showModalBottomSheet(
         isScrollControlled: true,
         context: context,
-        builder: (context) =>
-            BottomSheetComment(postModel,itemFeedPost));
+        builder: (context) => BottomSheetComment(postModel, itemFeedPost));
   }
 }
-

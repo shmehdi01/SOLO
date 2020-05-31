@@ -15,6 +15,7 @@ class User extends BaseModel {
   String phone;
   String photoUrl;
   String bannerUrl;
+  String gender;
   String bio;
   bool isEmailVerified;
   int accountType = Privacy.public;
@@ -22,7 +23,7 @@ class User extends BaseModel {
   int isSync;
 
   User({this.id, this.name, this.email, this.phone, this.photoUrl, this.bannerUrl, this.bio, this.isEmailVerified,
-      this.accountType, this.pushToken, this.isSync});
+      this.accountType, this.pushToken, this.isSync, this.gender});
 
   Future<ApiResponse<String>> sendEmailVerification() async {
     return ApiProvider.signUpApi.sendEmailVerification();
@@ -36,7 +37,8 @@ class User extends BaseModel {
       phone: user.phoneNumber,
       photoUrl: user.photoUrl,
       isEmailVerified: user.isEmailVerified,
-      accountType: Privacy.public
+      accountType: Privacy.public,
+      gender: ""
     );
   }
 
@@ -52,7 +54,8 @@ class User extends BaseModel {
       isEmailVerified: map['isEmailVerified'] == 1 ,
       accountType: map['accountType'],
       pushToken: map['pushToken'],
-      isSync: map['isSync']
+      isSync: map['isSync'],
+      gender: map['gender'],
     );
   }
 
@@ -71,6 +74,7 @@ class User extends BaseModel {
     map['accountType'] = accountType;
     map['pushToken'] = pushToken;
     map['isSync'] = isSync;
+    map['gender'] = gender;
 
     return map;
   }

@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:solo/database/app_constants.dart';
 import 'package:solo/database/dao/ConnectionDao.dart';
@@ -62,6 +64,11 @@ class ProfileActionNotifier with ChangeNotifier {
     notifyListeners();
   }
 
+  set postCount(int count) {
+    _photoCount = count;
+    notifyListeners();
+  }
+
   void _checkIsFollowing(User follower, User following) async {
     var resp = await ApiProvider.profileApi.isFollowing(follower, following);
 
@@ -84,13 +91,12 @@ class ProfileActionNotifier with ChangeNotifier {
   void fetchFollowers() async {
     var user = otherUser != null ? otherUser : currentUser;
     var resp = await ApiProvider.profileApi.getFollower(user);
-
     if (!resp.hasError) {
-      _followerCount = resp.success.length;
       var respUsers = await SessionManager.fetchUsrByConnection(
           user, resp.success,
           following: false);
       _myFollowers = respUsers.success;
+      _followerCount = respUsers.success.length;
 
       notifyListeners();
     }
@@ -107,11 +113,11 @@ class ProfileActionNotifier with ChangeNotifier {
     var resp = await ApiProvider.profileApi.getFollowing(user);
 
     if (!resp.hasError) {
-      _followingCount = resp.success.length;
       var respUsers = await SessionManager.fetchUsrByConnection(
           user, resp.success,
           following: true);
       _myFollowings = respUsers.success;
+      _followingCount = respUsers.success.length;
       notifyListeners();
     }
 
@@ -213,5 +219,18 @@ class ProfileActionNotifier with ChangeNotifier {
 //      fetchFollowers();
 //      notifyListeners();
 //    }
+  }
+
+  void changeCoverImage(BuildContext context, File image) async {
+    progressDialog(context, "Updating Cover..");
+    final resp = await ApiProvider.profileApi.changeBackground(SessionManager.currentUser, image);
+    Navigator.pop(context);
+
+
+    if(resp.hasError) {
+      showSnack(context, resp.error.errorMsg);
+    }else {
+      notifyListeners();
+    }
   }
 }

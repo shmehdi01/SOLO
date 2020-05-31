@@ -10,4 +10,5 @@ class Collection {
 
   static const String POST_STORAGE_LOCATION = "posts";
   static const String POSTS = "posts";
+  static const String BANNERS_STORAGE = "banner";
 }

@@ -1,7 +1,12 @@
+
+import 'dart:io';
+
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:solo/models/Collection.dart';
 import 'package:solo/models/connections.dart';
 import 'package:solo/models/user.dart';
 import 'package:solo/network/api_service.dart';
+import 'package:solo/network/firebase/firebase_storage_manager.dart';
 import 'package:solo/network/firebase/firestore_manager.dart';
 
 class FirebaseProfileApi extends ProfileApi {
@@ -170,4 +175,33 @@ class FirebaseProfileApi extends ProfileApi {
 
     return null;
   }
+
+  @override
+  Future<ApiResponse<void>> changeBackground(User user, File file) async{
+
+    final response = ApiResponse<void>();
+
+    final downloadUrl = await FirebaseStorageManager.upload("${Collection.BANNERS_STORAGE}/${user.id}", file)
+    .catchError((onError) {
+      response.hasError = true;
+      response.error = ApiError.fromFirebaseError(onError);
+
+    });
+
+    user.bannerUrl = downloadUrl;
+     await Firestore.instance.collection(Collection.USER).document(user.id).updateData(user.toMap())
+        .catchError((onError) {
+      response.hasError = true;
+      response.error = ApiError.fromFirebaseError(onError);
+
+    });
+
+    return response;
+  }
+
+  @override
+  Future<ApiResponse<void>> deleteAccount() {
+
+  }
+
 }

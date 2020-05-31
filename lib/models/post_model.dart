@@ -137,6 +137,9 @@ class Comment extends BaseModel {
     if(other is User) {
       return other.id == this.user.id;
     }
+    if(other is Comment) {
+      return other.id == this.id;
+    }
     return super==(other);
   }
 }

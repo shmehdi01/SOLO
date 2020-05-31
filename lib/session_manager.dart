@@ -1,6 +1,7 @@
 import 'dart:collection';
 import 'dart:io';
 
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:solo/database/app_constants.dart';
@@ -66,9 +67,12 @@ class SessionManager implements SessionApi {
 
     ConnectionDao().deleteAll();
     UserDao().deleteAll();
+    SessionManager.currentUser = null;
+    SessionManager.friendsList.clear();
 
     return response;
   }
+
 
   @override
   Future<User> getUser() async {
@@ -82,7 +86,8 @@ class SessionManager implements SessionApi {
             user = null;
           else {
             user = readResp.success;
-            currentUser = readResp.success;
+            user.isEmailVerified = firebaseUser.isEmailVerified;
+            currentUser = user;
             //fetchAllFriends(currentUser);
           }
         } else
@@ -114,7 +119,7 @@ class SessionManager implements SessionApi {
     switch (_apiFlavor) {
       case ApiFlavor.FIREBASE:
         UserUpdateInfo updateInfo = new UserUpdateInfo();
-        updateInfo.photoUrl = user.photoUrl;
+        //updateInfo.photoUrl = user.photoUrl;
         updateInfo.displayName = user.name;
         FirebaseUser firebaseUser = await FirebaseAuth.instance.currentUser();
         var response =
@@ -122,6 +127,9 @@ class SessionManager implements SessionApi {
           apiResponse.hasError = true;
           apiResponse.error = ApiError.fromFirebaseError(onError);
         });
+
+
+        await Firestore.instance.collection(Collection.USER).document(user.id).updateData(user.toMap());
 
         apiResponse.success = response;
         break;
@@ -161,7 +169,11 @@ class SessionManager implements SessionApi {
 
         user.photoUrl = imgUrl;
         apiResponse.success = imgUrl;
-        break;
+
+        if(SessionManager.currentUser != null) {
+          SessionManager.currentUser.photoUrl = imgUrl;
+        }
+          break;
       case ApiFlavor.NETWORK:
         // TODO: Handle this case.
         break;

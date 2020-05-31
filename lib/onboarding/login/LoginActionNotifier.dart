@@ -42,12 +42,13 @@ class LoginActionNotifier with ChangeNotifier {
         PushNotificationsManager.instance.updateUserToken(response.success);
 
         //GO TO HOMEPAGE
-        Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(
-                builder: (BuildContext context) => HomePage(
-                      user: response.success,
-                    )));
+        _goToDashboard(context, response.success);
+//        Navigator.pushReplacement(
+//            context,
+//            MaterialPageRoute(
+//                builder: (BuildContext context) => HomePage(
+//                      user: response.success,
+//                    )));
       } else {
         showSnack(context, response.error.errorMsg, error: true);
       }
@@ -64,12 +65,13 @@ class LoginActionNotifier with ChangeNotifier {
     var response = await ApiProvider.loginApi.googleSignInApp();
 
     if (!response.hasError) {
-      Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-              builder: (BuildContext context) => HomePage(
-                    user: response.success,
-                  )));
+      _goToDashboard(context, response.success);
+//      Navigator.pushReplacement(
+//          context,
+//          MaterialPageRoute(
+//              builder: (BuildContext context) => HomePage(
+//                    user: response.success,
+//                  )));
     } else {
       showSnack(context, response.error.errorMsg, error: true);
     }
@@ -85,12 +87,13 @@ class LoginActionNotifier with ChangeNotifier {
     var response = await ApiProvider.loginApi.facebookLogin();
 
     if (!response.hasError) {
-      Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-              builder: (BuildContext context) => HomePage(
-                    user: response.success,
-                  )));
+      _goToDashboard(context, response.success);
+//      Navigator.pushReplacement(
+//          context,
+//          MaterialPageRoute(
+//              builder: (BuildContext context) => HomePage(
+//                    user: response.success,
+//                  )));
     } else {
       showSnack(context, response.error.errorMsg, error: true);
     }
@@ -113,6 +116,10 @@ class LoginActionNotifier with ChangeNotifier {
 
     return true;
   }
+}
+
+_goToDashboard(context, user) {
+  goToPage(context, HomeDashboard(user: user,),replace: true);
 }
 
 typedef LoginCallback = Function(AuthResult result, String errorMsg);

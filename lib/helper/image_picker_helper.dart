@@ -14,7 +14,7 @@ class ImagePickerHelper {
     return ImagePicker.pickImage(source: ImageSource.camera);
   }
 
-  static void showImagePickerDialog(BuildContext context, Function(File image) onClick) {
+  static void showImagePickerDialog(BuildContext context, Function(File image) onClick, {String header = "Choose Image"}) {
      showDialog(
         context: context,
         child: Dialog(
@@ -23,7 +23,7 @@ class ImagePickerHelper {
               padding: const EdgeInsets.all(12),
               child: Column(
                 children: <Widget>[
-                  Text("Choose Image", style: TextStyle(fontSize: FONT_MEDIUM, fontWeight: FontWeight.bold),),
+                  Text("$header", style: TextStyle(fontSize: FONT_MEDIUM, fontWeight: FontWeight.bold),),
                   verticalGap(gap: 12),
                   FlatButton(
                       onPressed: () async {

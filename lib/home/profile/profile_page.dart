@@ -3,13 +3,14 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:solo/database/dao/ConnectionDao.dart';
+import 'package:solo/helper/dialog_helper.dart';
 import 'package:solo/home/chat/chat_screen.dart';
 import 'package:solo/home/profile/ProfileActionNotifier.dart';
-import 'package:solo/main.dart';
+import 'package:solo/home/profile/edit_profile_page.dart';
+import 'package:solo/home/profile/post_page.dart.dart';
+import 'package:solo/home/settings/setting_page.dart';
 import 'package:solo/models/user.dart';
 import 'package:solo/network/api_provider.dart';
-import 'package:solo/onboarding/login/login.dart';
-import 'package:solo/session_manager.dart';
 
 import '../../utils.dart';
 
@@ -54,16 +55,6 @@ class __ProfilePageStateState extends State<_ProfilePageState>
   }
 
   @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    print("koi v state $state");
-    if (state == AppLifecycleState.resumed) {
-      print("Resume hua hau");
-    }
-
-    //super.didChangeAppLifecycleState(state);
-  }
-
-  @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
@@ -72,7 +63,6 @@ class __ProfilePageStateState extends State<_ProfilePageState>
   @override
   Widget build(BuildContext context) {
     var notifier = Provider.of<ProfileActionNotifier>(context, listen: false);
-
     return Consumer<ProfileActionNotifier>(
       builder:
           (BuildContext context, ProfileActionNotifier value, Widget child) {
@@ -100,7 +90,7 @@ class __ProfilePageStateState extends State<_ProfilePageState>
                               ),
                             ),
                             placeholder: (context, url) =>
-                                Image.asset("$IMAGE_ASSETS/default_dp.png"),
+                                Image.asset("$IMAGE_ASSETS/login_bg.png"),
                             errorWidget: (context, url, error) =>
                                 Icon(Icons.error),
                           ),
@@ -112,7 +102,10 @@ class __ProfilePageStateState extends State<_ProfilePageState>
                             Icons.settings,
                             color: Colors.white,
                           ),
-                          onPressed: () {},
+                          onPressed: () {
+                            goToPage(context, SettingPage(),
+                                fullScreenDialog: true);
+                          },
                         ),
                       ),
                     if (!widget.widget.otherProfile)
@@ -124,7 +117,10 @@ class __ProfilePageStateState extends State<_ProfilePageState>
                             Icons.edit,
                             color: Colors.white,
                           ),
-                          onPressed: () {},
+                          onPressed: () {
+                            goToPage(context, EditProfilePage(),
+                                fullScreenDialog: true);
+                          },
                         ),
                       ),
                     Center(
@@ -202,7 +198,7 @@ class __ProfilePageStateState extends State<_ProfilePageState>
                   : widget.widget._user.bio == null
                       ? OutlineButton(
                           onPressed: () {
-                            AddBioDialog(context, "", (text) {
+                            DialogHelper.addBioDialog(context, "", (text) {
                               widget.widget._user.bio = text;
                               ApiProvider.profileApi
                                   .updateBio(widget.widget._user, text);
@@ -212,8 +208,8 @@ class __ProfilePageStateState extends State<_ProfilePageState>
                           child: Text("+ Add Bio"))
                       : InkWell(
                           onTap: () {
-                            AddBioDialog(context, widget.widget._user.bio,
-                                (text) {
+                            DialogHelper.addBioDialog(
+                                context, widget.widget._user.bio, (text) {
                               widget.widget._user.bio = text;
                               ApiProvider.profileApi
                                   .updateBio(widget.widget._user, text);
@@ -234,16 +230,6 @@ class __ProfilePageStateState extends State<_ProfilePageState>
               Expanded(
                 child: getPage(value.getTopAction, value),
               ),
-              FlatButton(
-                child: Text("Logout"),
-                onPressed: () {
-                  SessionManager().signOut();
-                  Navigator.pushReplacement(
-                      context,
-                      MaterialPageRoute(
-                          builder: (BuildContext context) => StartHome()));
-                },
-              )
             ],
           ),
         );
@@ -255,7 +241,7 @@ class __ProfilePageStateState extends State<_ProfilePageState>
     var page;
 
     if (index == 1)
-      page = _Photo();
+      page = PostPage(widget.widget._user);
     else if (index == 2)
       page = _Following(notifier.myFollowers, widget.widget._user,
           widget.widget.otherProfile, widget.widget.currentUser);
@@ -323,17 +309,6 @@ class __ProfilePageStateState extends State<_ProfilePageState>
             duration: Duration(milliseconds: 300),
           )
         ],
-      ),
-    );
-  }
-}
-
-class _Photo extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      child: Center(
-        child: Text("Photos"),
       ),
     );
   }
@@ -422,41 +397,4 @@ class __FollowingState extends State<_Following> {
           }),
     );
   }
-}
-
-void AddBioDialog(BuildContext context, String bio, Function(String) onUpdate) {
-  final bioEditCtrl = TextEditingController();
-  bioEditCtrl.text = bio;
-
-  showDialog(
-      context: context,
-      builder: (context) => Dialog(
-            child: Container(
-              padding: dimenAll(12),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: <Widget>[
-                  Text("${bio.isNotEmpty ? "Change Bio" : "Add Bio"}"),
-                  verticalGap(gap: 8),
-                  TextField(
-                    controller: bioEditCtrl,
-                    decoration: InputDecoration(hintText: "Write Bio"),
-                  ),
-                  verticalGap(gap: 8),
-                  MaterialButton(
-                      color: PRIMARY_COLOR,
-                      child: Text(
-                        "Update",
-                        style: TextStyle(color: Colors.white),
-                      ),
-                      onPressed: () {
-                        if (bioEditCtrl.text.isNotEmpty) {
-                          onUpdate(bioEditCtrl.text);
-                        }
-                        Navigator.pop(context);
-                      })
-                ],
-              ),
-            ),
-          ));
 }

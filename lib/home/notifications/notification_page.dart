@@ -1,10 +1,16 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:solo/home/HomeActionNotifier.dart';
+import 'package:solo/home/home.dart';
 import 'package:solo/home/notifications/NotificationActionNotifier.dart';
+import 'package:solo/home/profile/profile_page.dart';
+import 'package:solo/home/view_post_page.dart';
+import 'package:solo/models/notification_detail.dart';
 import 'package:solo/models/user.dart';
 import 'package:solo/network/api_provider.dart';
 import 'package:solo/network/api_service.dart';
+import 'package:solo/session_manager.dart';
 
 import '../../utils.dart';
 
@@ -59,11 +65,8 @@ class NotificationBody extends StatelessWidget {
     return Consumer<NotificationActionNotifier>(
       builder: (BuildContext context, NotificationActionNotifier value,
           Widget child) {
-
-        if(value.loading) {
-          return Center(
-            child: CircularProgressIndicator()
-          );
+        if (value.loading) {
+          return Center(child: CircularProgressIndicator());
         }
 
         if (value.notifications.isEmpty) {
@@ -81,14 +84,39 @@ class NotificationBody extends StatelessWidget {
                       ? Colors.white
                       : Color(0xffefefef),
                   child: ListTile(
-                    onTap: () {
+                    onTap: () async {
                       value.markAsRead(value.notifications[index]);
+
+                      if (value.notifications[index].type ==
+                          NotificationType.POST) {
+                        goToPage(
+                            context,
+                            ViewPostPage(
+                                postID: value.notifications[index].intentId));
+                      } else if (value.notifications[index].type ==
+                          NotificationType.FOLLOW) {
+                        final id = value.notifications[index].intentId;
+                        if (id == SessionManager.currentUser.id) {
+                          goToPage(
+                              context,
+                              HomeDashboard(
+                                user: SessionManager.currentUser,
+                                homePageState: HomePageState.PROFILE,
+                              ));
+                        } else {
+                          final resp =
+                              await ApiProvider.homeApi.fetchUserByID(id);
+                          goToPage(context, ProfilePage(resp.success, otherProfile: true, currentUser: SessionManager.currentUser,));
+                        }
+                      }
                     },
                     leading: FutureBuilder(
                       future: ApiProvider.homeApi
                           .fetchUserByID(value.notifications[index].fromId),
                       builder: (BuildContext context,
                           AsyncSnapshot<ApiResponse<User>> snapshot) {
+                        if (!snapshot.hasData) return horizontalGap(gap: 8);
+
                         return userImage(
                             imageUrl: snapshot.data.success.photoUrl,
                             radius: 18);
@@ -110,12 +138,14 @@ class NotificationBody extends StatelessWidget {
                         ),
                         verticalGap(gap: 4),
                         Text(
-                         Utils.displayDate( value.notifications[index].timestamp),
+                          Utils.displayDate(
+                              value.notifications[index].timestamp),
                           style: TextStyle(fontSize: FONT_SMALL),
                         ),
                       ],
                     ),
-                    trailing: value.notifications[index].imageUrl != null && value.notifications[index].imageUrl.isNotEmpty
+                    trailing: value.notifications[index].imageUrl != null &&
+                            value.notifications[index].imageUrl.isNotEmpty
                         ? squareImage(
                             imageUrl: value.notifications[index].imageUrl,
                             size: 40)

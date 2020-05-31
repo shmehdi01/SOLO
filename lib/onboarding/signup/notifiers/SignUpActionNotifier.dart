@@ -97,7 +97,7 @@ class SignUpActionNotifier with ChangeNotifier {
     } else if (password.isEmpty) {
       showSnack(context, getString(context, STR_PASS_EMPTY));
       return false;
-    } else if (password.length < 8) {
+    } else if (password.length < MAX_PASS_LIMIT) {
       showSnack(context, getString(context, STR_PASS_VALIDATE));
       return false;
     } else if (password != confirmPassword) {

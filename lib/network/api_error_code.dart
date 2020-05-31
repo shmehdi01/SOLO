@@ -5,4 +5,5 @@ abstract class ErrorCode {
   static const FB_ERROR = "FB_ERROR";
   static const USER_NOT_LOGGED_IN = "USER_NOT_LOGGED_IN";
   static const NO_RESULT_FOUND = "NO_RESULT_FOUND";
+  static const POST_NOT_FOUND = "POST_NOT_FOUND";
 }

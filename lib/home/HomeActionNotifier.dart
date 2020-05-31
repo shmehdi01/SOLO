@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:get_it/get_it.dart';
 import 'package:solo/database/dao/ConnectionDao.dart';
 import 'package:solo/database/dao/UsereDao.dart';
@@ -23,8 +24,18 @@ class HomeActionNotifier with ChangeNotifier {
 
   FirebaseUser get user => _user;
 
+  User get currentUser => _currentUser;
+
+
   int notificationCount = 0;
   int unReadMessage = 0;
+
+
+  HomeActionNotifier({@required User user, HomePageState homePageState}) {
+    this._homePageState = homePageState;
+    SessionManager.currentUser = user;
+    initializeHome();
+  }
 
   set updatePage(HomePageState state) {
     _homePageState = state;
@@ -33,6 +44,7 @@ class HomeActionNotifier with ChangeNotifier {
 
   Future<void> initializeHome() async {
     _currentUser = SessionManager.currentUser;
+    Fluttertoast.showToast(msg: _currentUser.name);
 
     ApiProvider.notificationApi.fetchNotificationStream(_currentUser)
     .listen((onData) {

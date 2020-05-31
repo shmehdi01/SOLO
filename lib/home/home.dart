@@ -1,4 +1,3 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -6,37 +5,48 @@ import 'package:solo/home/HomeActionNotifier.dart';
 import 'package:solo/home/chat/FriendsList.dart';
 import 'package:solo/home/chat/chat_page.dart';
 import 'package:solo/home/explore/explore_page.dart';
-import 'package:solo/home/notifications/api/push_notification.dart';
 import 'package:solo/home/notifications/notification_page.dart';
 import 'package:solo/home/profile/profile_page.dart';
 import 'package:solo/models/post_model.dart';
 import 'package:solo/models/user.dart';
 import 'package:solo/network/api_provider.dart';
-import 'package:solo/onboarding/login/login.dart';
-import 'package:solo/onboarding/signup/add_profile.dart';
 import 'package:solo/session_manager.dart';
 import 'package:solo/utils.dart';
 
 import 'create_post_page.dart';
 import 'item_post_feed.dart';
 
+class HomeDashboard extends StatelessWidget {
+  final User user;
+  final HomePageState homePageState;
+
+  HomeDashboard({@required this.user, this.homePageState = HomePageState.HOME});
+
+  @override
+  Widget build(BuildContext context) {
+    return ChangeNotifierProvider(
+        create: (BuildContext context) =>
+            HomeActionNotifier(user: user, homePageState: homePageState),
+        child: Scaffold(
+          body: HomePage(
+            user: SessionManager.currentUser,
+            homePageState: homePageState,
+          ),
+        ));
+  }
+}
+
 class HomePage extends StatefulWidget {
   final User user;
+  final HomePageState homePageState;
 
-  HomePage({@required this.user});
+  HomePage({@required this.user, this.homePageState = HomePageState.HOME});
 
   @override
   _HomePageState createState() => _HomePageState();
 }
 
 class _HomePageState extends State<HomePage> {
-  @override
-  void initState() {
-    Provider.of<HomeActionNotifier>(context, listen: false).initializeHome();
-    // NotificationService(widget.user.id).showNotification();
-    super.initState();
-  }
-
   @override
   void didUpdateWidget(HomePage oldWidget) {
     WidgetsFlutterBinding.ensureInitialized();
@@ -130,19 +140,9 @@ class _HomePageState extends State<HomePage> {
           resizeToAvoidBottomPadding: false,
           floatingActionButton: value.pageState == HomePageState.HOME
               ? FloatingActionButton(
+                  heroTag: "CreatePost",
                   child: Icon(Icons.add),
                   onPressed: () {
-                    print("hmmm");
-                    //de6E3m_690I:APA91bEOHgxcmegrc2RwSftGHjj7vLM8WY-fGxgPbHdlwXt-lIieLf84BkIUBZMH5Jmsv9DQacvvxd_OC8T8hWxA_4QDZmnxyBikaXkpxNomlIIEiyINiZy7xfhe4RU3L18v64P052Bo
-                    PushNotificationBuilder(
-                            message: "Message",
-                            title: "Title",
-                            image:
-                                "https://miro.medium.com/max/1400/1*G83x_di2BQjDzQIh4zGTrA.jpeg",
-                            token:
-                                "eYzvUzKHO7w:APA91bEljRckezyzTDT5L-5fysut-lfduW-K6D6_p6nhqNZKp7q4uZsrDYzfBc5S8BE8JDxjcXqg0nf9lz6KDEONRHHgNccr_VF-SbWgnWuMScpTkd45K0H66xSaeQ5dFBjp1X7gkQvW")
-                        .createToken()
-                        .sendNotification();
                     Navigator.push(context, createRoute(CreateUserPost()));
                   },
                 )
@@ -161,10 +161,10 @@ class _HomePageState extends State<HomePage> {
                   page = ExplorePage();
                   break;
                 case HomePageState.CHAT:
-                  page = ChatPage(widget.user);
+                  page = ChatPage(value.currentUser);
                   break;
                 case HomePageState.PROFILE:
-                  page = ProfilePage(widget.user);
+                  page = ProfilePage(value.currentUser);
                   break;
               }
               return page;
@@ -233,7 +233,7 @@ class _HomePageState extends State<HomePage> {
                   context,
                   MaterialPageRoute(
                       builder: (BuildContext context) =>
-                          NotificationPage(widget.user)));
+                          NotificationPage(SessionManager.currentUser)));
             },
           ),
         ],
@@ -251,7 +251,7 @@ class _HomePageState extends State<HomePage> {
             color: Colors.black,
           ),
           onPressed: () {
-            showSearch(context: context, delegate: SearchUser(widget.user));
+            showSearch(context: context, delegate: SearchUser(SessionManager.currentUser));
           },
         ),
         centerTitle: true,
@@ -329,67 +329,6 @@ class _HomePageState extends State<HomePage> {
     }
 
     return toolbar;
-  }
-}
-
-class HomeBody extends StatelessWidget {
-  final User user;
-
-  HomeBody(this.user);
-
-  @override
-  Widget build(BuildContext context) {
-//    if(!user.isEmailVerified) {
-//      showSnack(context, "Email is not verified");
-//    }
-
-    return SafeArea(
-      child: SingleChildScrollView(
-        child: Container(
-            padding: const EdgeInsets.all(12),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: <Widget>[
-                Center(
-                  child: Text("${user.name}"),
-                ),
-                Center(
-                  child: FlatButton(
-                    child: Text(!user.isEmailVerified
-                        ? "Email is not verified"
-                        : "Email is Verfied"),
-                    onPressed: () {
-                      if (!user.isEmailVerified) {
-                        //user.sendEmailVerification();
-                        print(user.photoUrl);
-                      } else {
-                        print(user.photoUrl);
-                        Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: (BuildContext context) =>
-                                    AddProfilePage(user)));
-                        showSnack(context,
-                            "A verirification link is send to your ${user.email}");
-                      }
-                    },
-                  ),
-                ),
-                FlatButton(
-                  child: Text("Logout"),
-                  onPressed: () {
-                    FirebaseAuth.instance.signOut().whenComplete(() {
-                      Navigator.pushReplacement(
-                          context,
-                          MaterialPageRoute(
-                              builder: (BuildContext context) => LoginPage()));
-                    });
-                  },
-                )
-              ],
-            )),
-      ),
-    );
   }
 }
 

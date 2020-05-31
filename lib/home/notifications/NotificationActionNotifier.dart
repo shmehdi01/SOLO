@@ -8,7 +8,7 @@ class NotificationActionNotifier extends ChangeNotifier {
 
   User _user;
   Function(ApiError apiError) _onError;
-  List<NotificationDetail> _notifications = [];
+  List<NotificationDetail> _notifications = <NotificationDetail>[];
   bool loading = false;
 
   List<NotificationDetail> get notifications => _notifications; 

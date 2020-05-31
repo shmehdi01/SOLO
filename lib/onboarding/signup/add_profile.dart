@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -11,8 +12,9 @@ import '../../utils.dart';
 
 class AddProfilePage extends StatelessWidget {
   final User user;
+  final bool changeDp;
 
-  AddProfilePage(this.user);
+  AddProfilePage(this.user, {this.changeDp = false});
 
   @override
   Widget build(BuildContext context) {
@@ -39,7 +41,7 @@ class AddProfilePage extends StatelessWidget {
           ),
           centerTitle: true,
           actions: <Widget>[
-            Container(
+            if(!changeDp) Container(
               margin: const EdgeInsets.all(8),
               child: MaterialButton(
                 shape: RoundedRectangleBorder(
@@ -69,7 +71,7 @@ class AddProfilePage extends StatelessWidget {
           create: (BuildContext context) => SignUpActionNotifier(),
         ),
         ChangeNotifierProvider(
-          create: (BuildContext context) => ImagePickerNotifier(user),
+          create: (BuildContext context) => ImagePickerNotifier(user, changeDp),
         ),
       ],
     );
@@ -110,7 +112,7 @@ class AddProfileBody extends StatelessWidget {
                   children: <Widget>[
                     CircleAvatar(
                       radius: 100,
-                      backgroundImage: imageNotifier.user.photoUrl != null  ? NetworkImage(imageNotifier.user.photoUrl) :value.imageFile == null
+                      backgroundImage: imageNotifier.user.photoUrl != null  ? CachedNetworkImageProvider(imageNotifier.user.photoUrl) :value.imageFile == null
                           ? AssetImage("$IMAGE_ASSETS/default_dp.png")
                           : FileImage(value.imageFile),
                       backgroundColor: Color(0xffefefef),

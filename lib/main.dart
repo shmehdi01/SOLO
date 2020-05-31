@@ -17,7 +17,7 @@ import 'package:solo/utils.dart';
 import 'home/NotificationService.dart';
 import 'network/api_provider.dart';
 
-void main() => runApp(ChangeNotifierProvider(child: MyApp(), create: (BuildContext context) => HomeActionNotifier(),));
+void main() => runApp(MyApp());
 
 
 class MyApp extends StatelessWidget {
@@ -25,7 +25,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-        title: 'Flutter Demo',
+        title: 'SOLO',
         supportedLocales: [Locale('en'), Locale('hi')],
         localizationsDelegates: [
           AppLocalization.delegate,
@@ -33,9 +33,11 @@ class MyApp extends StatelessWidget {
           GlobalWidgetsLocalizations.delegate,
         ],
         theme: ThemeData(
+            cursorColor: PRIMARY_COLOR,
             backgroundColor: Colors.white,
-            primarySwatch: PRIMARY_COLOR,
-            primaryColorDark: Colors.grey,
+            primaryColor: appBarColor,
+            primaryColorDark: appBarColor,
+            accentColor: PRIMARY_COLOR,
             fontFamily: 'Gothom'
         ),
         home: StartHome()
@@ -72,13 +74,13 @@ class _StartHomeState extends State<StartHome> {
     sessionManager.getUser().then((user) {
       if(user != null) {
 
-        SessionManager.loadFriends();
+        //SessionManager.loadFriends();
         //Start Service
         setupServiceLocator(user);
         SoloService service = locator<SoloService>();
         service.init();
 
-        Navigator.pushReplacement(context, MaterialPageRoute(builder: (BuildContext context) => HomePage(user: user,)));
+        Navigator.pushReplacement(context, MaterialPageRoute(builder: (BuildContext context) => HomeDashboard(user: user,)));
       }else {
         Navigator.pushReplacement(context, MaterialPageRoute(builder: (BuildContext context) => LoginPage()));
       }
