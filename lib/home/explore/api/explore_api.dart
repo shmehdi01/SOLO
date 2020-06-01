@@ -21,6 +21,9 @@ class FirebaseExploreApi extends ExploreApi {
               .startsWith(query.toLowerCase()) ||
           f.data['email']
               .toString()
+              .toLowerCase() == (query.toLowerCase()) ||
+          f.data['username']
+              .toString()
               .toLowerCase() == (query.toLowerCase())) {
         list.add(User.fromMap(f.data));
       }

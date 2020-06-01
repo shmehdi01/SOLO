@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -10,6 +12,10 @@ import '../utils.dart';
 class CreatePostPage extends StatelessWidget {
   final body = _CreatePostBody();
 
+  final File selectedImage;
+
+  CreatePostPage({this.selectedImage});
+
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
@@ -19,7 +25,7 @@ class CreatePostPage extends StatelessWidget {
         }),
         body: body,
       ),
-      create: (BuildContext context) => CreatePostNotifier(),
+      create: (BuildContext context) => CreatePostNotifier(selectedImage),
     );
   }
 

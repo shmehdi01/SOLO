@@ -5,8 +5,10 @@ import 'package:photo_view/photo_view.dart';
 import 'package:solo/database/app_constants.dart';
 import 'package:solo/helper/dialog_helper.dart';
 import 'package:solo/home/profile/profile_page.dart';
+import 'package:solo/home/report/report_dialogs.dart';
 import 'package:solo/location/locationPage.dart';
 import 'package:solo/models/post_model.dart';
+import 'package:solo/models/report_model.dart';
 import 'package:solo/models/user.dart';
 import 'package:solo/network/api_provider.dart';
 import 'package:solo/network/api_service.dart';
@@ -179,69 +181,66 @@ class ItemFeedPost extends StatelessWidget {
   }
 
   Widget singleComments(BuildContext context, Comment comment) {
-
     return Container(
-      margin: const EdgeInsets.only(bottom: 10),
-      decoration: BoxDecoration(
-          color: Color(0xffF6F7F9),
-          borderRadius: BorderRadius.all(Radius.circular(23))),
-      child:  ListTile(
-        onTap: () {
-          _Utils.openCommentPage(context, postModel, this);
-        },
-        leading: userImage(imageUrl: comment.user.photoUrl, radius: 18),
-        title: Padding(
-          padding: const EdgeInsets.only(bottom: 4),
-          child: Text(comment.user.name,
-              style: TextStyle(
-                  fontSize: FONT_SMALL,
-                  color: Colors.black,
-                  fontWeight: FontWeight.w700)),
-        ),
-        subtitle: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: <Widget>[
-            Text(comment.comments,
+        margin: const EdgeInsets.only(bottom: 10),
+        decoration: BoxDecoration(
+            color: Color(0xffF6F7F9),
+            borderRadius: BorderRadius.all(Radius.circular(23))),
+        child: ListTile(
+          onTap: () {
+            _Utils.openCommentPage(context, postModel, this);
+          },
+          leading: userImage(imageUrl: comment.user.photoUrl, radius: 18),
+          title: Padding(
+            padding: const EdgeInsets.only(bottom: 4),
+            child: Text(comment.user.name,
                 style: TextStyle(
-                  fontSize: FONT_NORMAL,
-                )),
-            verticalGap(gap: 4),
-            if (comment.timestamp != null)
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: <Widget>[
-                  Text(Utils.displayDate(comment.timestamp),
-                      style: TextStyle(
-                        fontSize: FONT_SMALL,
-                      )),
-                  horizontalGap(gap: 12),
-                  if (comment.user.id == SessionManager.currentUser.id)
-                    InkWell(
-                        onTap: () {
-                          showAlertDialog(
-                              context, "Delete Comment?", comment.comments,
-                              actions: [
-                                dialogButton(
-                                    buttonText: "Delete",
-                                    onPressed: () {
-                                      Navigator.pop(context);
-                                      ApiProvider.homeApi
-                                          .deleteComment(postModel, comment);
-                                    })
-                              ]);
-                        },
-                        child: Text(
-                          "Delete",
-                          style: TextStyle(
-                              color: Colors.red, fontSize: FONT_SMALL),
-                        ))
-                ],
-              ),
-          ],
-        ),
-      )
-
-    );
+                    fontSize: FONT_SMALL,
+                    color: Colors.black,
+                    fontWeight: FontWeight.w700)),
+          ),
+          subtitle: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              Text(comment.comments,
+                  style: TextStyle(
+                    fontSize: FONT_NORMAL,
+                  )),
+              verticalGap(gap: 4),
+              if (comment.timestamp != null)
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: <Widget>[
+                    Text(Utils.displayDate(comment.timestamp),
+                        style: TextStyle(
+                          fontSize: FONT_SMALL,
+                        )),
+                    horizontalGap(gap: 12),
+                    if (comment.user.id == SessionManager.currentUser.id)
+                      InkWell(
+                          onTap: () {
+                            showAlertDialog(
+                                context, "Delete Comment?", comment.comments,
+                                actions: [
+                                  dialogButton(
+                                      buttonText: "Delete",
+                                      onPressed: () {
+                                        Navigator.pop(context);
+                                        ApiProvider.homeApi
+                                            .deleteComment(postModel, comment);
+                                      })
+                                ]);
+                          },
+                          child: Text(
+                            "Delete",
+                            style: TextStyle(
+                                color: Colors.red, fontSize: FONT_SMALL),
+                          ))
+                  ],
+                ),
+            ],
+          ),
+        ));
   }
 
   @override
@@ -308,8 +307,11 @@ class ItemFeedPost extends StatelessWidget {
                               IconButton(
                                   icon: Icon(Icons.more_vert),
                                   onPressed: () {
-                                    DialogHelper.postItemOption(context,
-                                        postModel.userId == currentUser.id ? postItemMyOptions : postItemOtherOptions,
+                                    DialogHelper.postItemOption(
+                                        context,
+                                        postModel.userId == currentUser.id
+                                            ? postItemMyOptions
+                                            : postItemOtherOptions,
                                         onAction: (str) {
                                       if (str == AppConstant.DELETE_POST) {
                                         DialogHelper.customAlertDialog(context,
@@ -327,7 +329,12 @@ class ItemFeedPost extends StatelessWidget {
                                           }
                                         });
                                         //DELETE POST
-                                      } else {
+                                      } else if (str ==
+                                          AppConstant.REPORT_POST) {
+                                        BottomSheetReport.show(context,
+                                            reportType: ReportType.POST,
+                                            reportingID: postModel.id,
+                                            user: SessionManager.currentUser);
                                         //REPORT
                                       }
                                     });

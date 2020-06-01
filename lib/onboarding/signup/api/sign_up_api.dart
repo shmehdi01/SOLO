@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:solo/models/Collection.dart';
 import 'package:solo/models/user.dart';
@@ -30,13 +31,16 @@ class FirebaseSignUp implements SignUpApi {
       newUser.name = user.name;
 
       //INSERT USER INFORMATION TO FIRE STORE DATABASE
-      var insertRes = await FirestoreManager.insert(collection: Collection.USER, document: newUser.id, data: newUser.toMap());
+      var insertRes = await FirestoreManager.insert(
+          collection: Collection.USER,
+          document: newUser.id,
+          data: newUser.toMap());
 
       apiResponse.hasError = insertRes.hasError;
       apiResponse.error = insertRes.error;
 
       //IF INSERTION THROW ANY ERROR DELETE USER FROM AUTH
-      if(insertRes.hasError) {
+      if (insertRes.hasError) {
         firebaseUser.delete();
         print("User Deleted (${firebaseUser.email})");
       }
@@ -55,7 +59,8 @@ class FirebaseSignUp implements SignUpApi {
     FirebaseUser user = await FirebaseAuth.instance.currentUser();
     if (user == null) {
       apiResponse.hasError = true;
-      apiResponse.error = ApiError("User not logged in", ErrorCode.USER_NOT_LOGGED_IN);
+      apiResponse.error =
+          ApiError("User not logged in", ErrorCode.USER_NOT_LOGGED_IN);
     } else {
       await user.sendEmailVerification().catchError((onError) {
         apiResponse.hasError = true;
@@ -67,5 +72,17 @@ class FirebaseSignUp implements SignUpApi {
     }
 
     return apiResponse;
+  }
+
+  @override
+  Future<bool> checkUserNameAvailability(String username) async {
+    bool isAvailable = true;
+    final s = await Firestore.instance
+        .collection(Collection.USER)
+        .where("username", isEqualTo: username)
+        .getDocuments();
+    isAvailable = s.documents.length == 0;
+
+    return isAvailable;
   }
 }

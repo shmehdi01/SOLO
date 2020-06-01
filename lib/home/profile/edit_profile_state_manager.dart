@@ -21,14 +21,22 @@ class EditProfileStateManager extends ChangeNotifier {
   File coverFile;
 
   String selectedGender = "";
+  String username = "";
+  bool isUserNameAvailable = false;
+  String hintText = "";
 
   final gender = <String>["Not Specified", "Male", "Female", "Other"];
 
   EditProfileStateManager() {
     selectedGender = user.gender;
+    username = user.username;
 
     if (selectedGender == null || selectedGender.isEmpty) {
       selectedGender = gender[0];
+    }
+
+    if (username == null || username.isEmpty) {
+      username = "";
     }
   }
 
@@ -47,7 +55,7 @@ class EditProfileStateManager extends ChangeNotifier {
     notifyListeners();
   }
 
-  void updateProfile(context, String name) async {
+  void updateProfile(context, String name, String username) async {
     loader= true;
     notifyListeners();
 
@@ -62,8 +70,12 @@ class EditProfileStateManager extends ChangeNotifier {
     }
 
     user.name = name;
+    user.username = username;
     user.gender = selectedGender;
+
     SessionManager.currentUser.name = name;
+    SessionManager.currentUser.username = username;
+
     await SessionManager().uploadProfile(user);
 
     loader = false;
@@ -72,5 +84,22 @@ class EditProfileStateManager extends ChangeNotifier {
     Navigator.pop(context);
     goToPage(context, HomeDashboard(user: SessionManager.currentUser), replace: true);
     Fluttertoast.showToast(msg: "Profile updated Successfully");
+  }
+
+  void checkAvailability(String username) async {
+    if(username.isEmpty) {
+      Fluttertoast.showToast(msg: "Please enter username");
+      return;
+    }
+
+    if(username.length < 4) {
+      Fluttertoast.showToast(msg: "Username length should be minimum 4");
+      return;
+    }
+
+    isUserNameAvailable = await ApiProvider.signUpApi.checkUserNameAvailability(username);
+    hintText = isUserNameAvailable ? "$username available" : "$username not available";
+
+    notifyListeners();
   }
 }

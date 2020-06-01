@@ -14,9 +14,13 @@ import '../utils.dart';
 
 class CreatePostNotifier extends ChangeNotifier {
 
+
   File selectedImage;
   final _selectedTagsUser = <User>[];
   var _tagNames = "";
+
+
+  CreatePostNotifier(this.selectedImage);
 
   List<User> get selectedTags => _selectedTagsUser;
   String get tagNames => _tagNames;

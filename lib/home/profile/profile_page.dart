@@ -66,172 +66,162 @@ class __ProfilePageStateState extends State<_ProfilePageState>
     return Consumer<ProfileActionNotifier>(
       builder:
           (BuildContext context, ProfileActionNotifier value, Widget child) {
-        return Container(
-          color: Colors.white,
-          child: Column(
-            children: <Widget>[
-              Container(
-                height: bannerHeight,
-                child: Stack(
+        return NestedScrollView(
+          body: Container(
+            color: Colors.white,
+            child: Column(
+              children: <Widget>[
+                Stack(
                   children: <Widget>[
-                    widget.widget._user.bannerUrl == null
-                        ? Container(
-                            color: Colors.grey,
-                            height: bannerHeight,
-                          )
-                        : CachedNetworkImage(
-                            imageUrl: widget.widget._user.bannerUrl,
-                            imageBuilder: (context, imageProvider) => Container(
-                              decoration: BoxDecoration(
-                                image: DecorationImage(
-                                  image: imageProvider,
-                                  fit: BoxFit.cover,
-                                ),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: <Widget>[
+                        Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: InkWell(
+                            onTap: () {
+                              if(!widget.widget.otherProfile) {
+                                goToPage(context, EditProfilePage(),fullScreenDialog: true);
+                              }
+                            },
+                            child: CircleAvatar(
+                              radius: 42,
+                              backgroundColor: appBarColor,
+                              child: CircleAvatar(
+                                radius: 40,
+                                backgroundImage:
+                                    widget.widget._user.photoUrl == null
+                                        ? AssetImage("$IMAGE_ASSETS/default_dp.png")
+                                        : CachedNetworkImageProvider(
+                                            widget.widget._user.photoUrl),
                               ),
                             ),
-                            placeholder: (context, url) =>
-                                Image.asset("$IMAGE_ASSETS/login_bg.png"),
-                            errorWidget: (context, url, error) =>
-                                Icon(Icons.error),
-                          ),
-                    if (!widget.widget.otherProfile)
-                      Positioned(
-                        right: 0,
-                        child: IconButton(
-                          icon: Icon(
-                            Icons.settings,
-                            color: Colors.white,
-                          ),
-                          onPressed: () {
-                            goToPage(context, SettingPage(),
-                                fullScreenDialog: true);
-                          },
-                        ),
-                      ),
-                    if (!widget.widget.otherProfile)
-                      Positioned(
-                        right: 0,
-                        bottom: 0,
-                        child: IconButton(
-                          icon: Icon(
-                            Icons.edit,
-                            color: Colors.white,
-                          ),
-                          onPressed: () {
-                            goToPage(context, EditProfilePage(),
-                                fullScreenDialog: true);
-                          },
-                        ),
-                      ),
-                    Center(
-                        child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: <Widget>[
-                        CircleAvatar(
-                          radius: 61,
-                          backgroundColor: Colors.white,
-                          child: CircleAvatar(
-                            radius: 60,
-                            backgroundImage:
-                                widget.widget._user.photoUrl == null
-                                    ? AssetImage("$IMAGE_ASSETS/default_dp.png")
-                                    : CachedNetworkImageProvider(
-                                        widget.widget._user.photoUrl),
                           ),
                         ),
-                        SizedBox(
-                          height: 20,
+                        horizontalGap(gap: 20),
+                        Expanded(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: <Widget>[
+                              SizedBox(
+                                height: 20,
+                              ),
+                              Text(
+                                "${widget.widget._user.name}",
+                                style: TextStyle(
+                                    color: Colors.black,
+                                    fontSize: FONT_LARGE,
+                                    fontWeight: FontWeight.bold),
+                              ),
+                              SizedBox(
+                                height: 5,
+                              ),
+                              if(widget.widget._user.username != null && widget.widget._user.username.isNotEmpty)
+                                Text(
+                                "@${widget.widget._user.username}",
+                                style: TextStyle(
+                                    color: Colors.black54, fontSize: FONT_NORMAL),
+                              ),
+                              verticalGap(gap: 8),
+                              bioWidget()
+                            ],
+                          ),
                         ),
-                        Text(
-                          "${widget.widget._user.name}",
-                          style: TextStyle(
-                              color: Colors.white, fontSize: FONT_LARGE),
-                        ),
-                        SizedBox(
-                          height: 5,
-                        ),
-                        Text(
-                          "${widget.widget._user.email}",
-                          style: TextStyle(
-                              color: Colors.white, fontSize: FONT_NORMAL),
-                        ),
+                        if (!widget.widget.otherProfile)
+                          IconButton(
+                            icon: Icon(
+                              Icons.settings,
+                              color: Colors.black,
+                            ),
+                            onPressed: () {
+                              goToPage(context, SettingPage(), fullScreenDialog: true);
+                            },
+                          ),
                       ],
-                    ))
+                    ),
+                    if (!widget.widget.otherProfile)
+                      Positioned(
+                        bottom: 10,
+                        left: 70,
+                        child: Container(
+                          decoration: BoxDecoration(
+                              color: PRIMARY_COLOR,
+                              borderRadius:
+                                  BorderRadius.all(Radius.circular(20))),
+                          height: 20,
+                          width: 20,
+                          child: Center(
+                            child: Icon(
+                              Icons.add,
+                              color: Colors.white,
+                              size: 20,
+                            ),
+                          ),
+                        ),
+                      )
                   ],
                 ),
-              ),
-              SizedBox(
-                height: 20,
-              ),
-              widget.widget.otherProfile
-                  ? OutlineButton(
-                      onPressed: () {
-                        if (!value.isFollowing) {
-                          notifier.followUser(
-                              context,
-                              widget.widget.currentUser.id,
-                              widget.widget._user);
-                        } else {
-                          //UnFollow
-                          showAlertDialog(context, null,
-                              "Unfollow ${widget.widget._user.name} ?",
-                              actions: [
-                                dialogButton(
-                                    buttonText: "Unfollow",
-                                    onPressed: () {
-                                      Navigator.pop(context);
-                                      notifier.unFollowUser(
-                                          value.followingConnection, context);
-                                    })
-                              ]);
-                        }
-                      },
-                      child: Text(value.isFollowing ? "Following" : "Follow"))
-                  : Container(),
-              SizedBox(
-                height: widget.widget.otherProfile ? 10 : 0,
-              ),
-              widget.widget.otherProfile
-                  ? widget.widget._user.bio != null
-                      ? Text(widget.widget._user.bio)
-                      : Container()
-                  : widget.widget._user.bio == null
-                      ? OutlineButton(
-                          onPressed: () {
-                            DialogHelper.addBioDialog(context, "", (text) {
-                              widget.widget._user.bio = text;
-                              ApiProvider.profileApi
-                                  .updateBio(widget.widget._user, text);
-                              setState(() {});
-                            });
-                          },
-                          child: Text("+ Add Bio"))
-                      : InkWell(
-                          onTap: () {
-                            DialogHelper.addBioDialog(
-                                context, widget.widget._user.bio, (text) {
-                              widget.widget._user.bio = text;
-                              ApiProvider.profileApi
-                                  .updateBio(widget.widget._user, text);
-                              setState(() {});
-                            });
-                          },
-                          child: Text(
-                            widget.widget._user.bio,
-                            style: TextStyle(fontWeight: FontWeight.bold),
-                          ),
-                        ),
-              SizedBox(
-                height: widget.widget.otherProfile
-                    ? widget.widget._user.bio != null ? 30 : 0
-                    : 20,
-              ),
-              tabSection(value),
-              Expanded(
-                child: getPage(value.getTopAction, value),
-              ),
-            ],
+                Divider(),
+                widget.widget.otherProfile
+                    ? OutlineButton(
+                        onPressed: () {
+                          if (!value.isFollowing) {
+                            notifier.followUser(
+                                context,
+                                widget.widget.currentUser.id,
+                                widget.widget._user);
+                          } else {
+                            //UnFollow
+                            showAlertDialog(context, null,
+                                "Unfollow ${widget.widget._user.name} ?",
+                                actions: [
+                                  dialogButton(
+                                      buttonText: "Unfollow",
+                                      onPressed: () {
+                                        Navigator.pop(context);
+                                        notifier.unFollowUser(
+                                            value.followingConnection, context);
+                                      })
+                                ]);
+                          }
+                        },
+                        child: Text(value.isFollowing ? "Following" : "Follow"))
+                    : Container(),
+                SizedBox(
+                  height: widget.widget.otherProfile ? 10 : 0,
+                ),
+
+                Material(
+                  elevation: 5,
+                    child: tabSection(value)),
+                Expanded(
+                  child: getPage(value.getTopAction, value),
+                ),
+              ],
+            ),
           ),
+          headerSliverBuilder: (BuildContext context, bool innerBoxIsScrolled) {
+            return <Widget>[
+              SliverAppBar(
+                expandedHeight: 120.0,
+                floating: true,
+                pinned: false,
+                flexibleSpace: FlexibleSpaceBar(
+                    collapseMode: CollapseMode.pin,
+                    background: Container(
+                      decoration: BoxDecoration(
+                          image: DecorationImage(
+                              image: widget.widget._user.bannerUrl != null
+                                  ? CachedNetworkImageProvider(
+                                      widget.widget._user.bannerUrl)
+                                  : AssetImage(("$IMAGE_ASSETS/login_bg.jpeg")),
+                              fit: BoxFit.cover)),
+                    )),
+              ),
+            ];
+          },
         );
       },
     );
@@ -253,30 +243,33 @@ class __ProfilePageStateState extends State<_ProfilePageState>
   }
 
   Widget tabSection(ProfileActionNotifier value) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-      children: <Widget>[
-        Expanded(
-          child: tabAction(
-              1, value.photoCount, "Posts", value.getTopAction == 1, (index) {
-            value.setTopAction = index;
-          }),
-        ),
-        Expanded(
-          child: tabAction(
-              2, value.followerCount, "Followers", value.getTopAction == 2,
-              (index) {
-            value.setTopAction = index;
-          }),
-        ),
-        Expanded(
-          child: tabAction(
-              3, value.followingCount, "Followings", value.getTopAction == 3,
-              (index) {
-            value.setTopAction = index;
-          }),
-        ),
-      ],
+    return Container(
+      padding: const EdgeInsets.only(top: 8),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: <Widget>[
+          Expanded(
+            child: tabAction(
+                1, value.photoCount, "Posts", value.getTopAction == 1, (index) {
+              value.setTopAction = index;
+            }),
+          ),
+          Expanded(
+            child: tabAction(
+                2, value.followerCount, "Followers", value.getTopAction == 2,
+                (index) {
+              value.setTopAction = index;
+            }),
+          ),
+          Expanded(
+            child: tabAction(
+                3, value.followingCount, "Followings", value.getTopAction == 3,
+                (index) {
+              value.setTopAction = index;
+            }),
+          ),
+        ],
+      ),
     );
   }
 
@@ -309,6 +302,39 @@ class __ProfilePageStateState extends State<_ProfilePageState>
             duration: Duration(milliseconds: 300),
           )
         ],
+      ),
+    );
+  }
+
+  Widget bioWidget() {
+    return widget.widget.otherProfile
+        ? widget.widget._user.bio != null
+        ? Text(widget.widget._user.bio)
+        : Container()
+        : widget.widget._user.bio == null
+        ? OutlineButton(
+        onPressed: () {
+          DialogHelper.addBioDialog(context, "", (text) {
+            widget.widget._user.bio = text;
+            ApiProvider.profileApi
+                .updateBio(widget.widget._user, text);
+            setState(() {});
+          });
+        },
+        child: Text("+ Add Bio"))
+        : InkWell(
+      onTap: () {
+        DialogHelper.addBioDialog(
+            context, widget.widget._user.bio, (text) {
+          widget.widget._user.bio = text;
+          ApiProvider.profileApi
+              .updateBio(widget.widget._user, text);
+          setState(() {});
+        });
+      },
+      child: Text(
+        widget.widget._user.bio,
+        style: TextStyle(fontWeight: FontWeight.bold),
       ),
     );
   }

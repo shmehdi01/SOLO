@@ -34,10 +34,12 @@ class _BodyEdit extends StatelessWidget {
 
   final nameController = TextEditingController();
   final emailController = TextEditingController();
+  final userNameController = TextEditingController();
 
   _BodyEdit() {
     nameController.text = SessionManager.currentUser.name;
     emailController.text = SessionManager.currentUser.email;
+    userNameController.text = SessionManager.currentUser.username;
   }
 
   @override
@@ -61,7 +63,7 @@ class _BodyEdit extends StatelessWidget {
                                     ? CachedNetworkImageProvider(
                                         value.user.bannerUrl)
                                     : AssetImage(
-                                        ("$IMAGE_ASSETS/login_bg.png")),
+                                        ("$IMAGE_ASSETS/login_bg.jpeg")),
                             fit: BoxFit.cover)),
                   ),
                   Row(
@@ -89,6 +91,27 @@ class _BodyEdit extends StatelessWidget {
                     child: TextField(
                         controller: nameController,
                         decoration: _inputDecoration("Full Name")),
+                  ),
+                  Padding(
+                    padding: _editTextPadding(),
+                    child: TextField(
+                        controller: userNameController,
+                        enabled: value.username.isEmpty,
+                        decoration: _inputDecoration("Username")),
+                  ),
+                  if(value.username.isEmpty)  Padding(
+                    padding: _editTextPadding(),
+                    child: Row(
+                      children: <Widget>[
+                        FlatButton(onPressed: () {
+                          value.checkAvailability(userNameController.text);
+                        },
+                          color: appBarColor,
+                          child: Text("Check Availability", style: TextStyle(color: Colors.black),),),
+                        horizontalGap(gap: 12),
+                        Text(value.hintText, style: TextStyle(color: value.isUserNameAvailable ? Colors.green: Colors.red),),
+                      ],
+                    ),
                   ),
                   Padding(
                     padding: _editTextPadding(),
@@ -188,7 +211,7 @@ class _BodyEdit extends StatelessWidget {
                       } else if (nameController.text.length < 4) {
                         showSnack(context, "Name must be at least 4 character");
                       } else {
-                        value.updateProfile(context, nameController.text);
+                        value.updateProfile(context, nameController.text, userNameController.text);
                       }
                     },
                     child: Text(

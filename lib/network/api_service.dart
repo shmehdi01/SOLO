@@ -8,6 +8,7 @@ import 'package:solo/models/connections.dart';
 import 'package:solo/models/follow_detail.dart';
 import 'package:solo/models/notification_detail.dart';
 import 'package:solo/models/post_model.dart';
+import 'package:solo/models/report_model.dart';
 import 'package:solo/models/user.dart';
 import 'package:solo/session_manager.dart';
 
@@ -50,6 +51,8 @@ abstract class SignUpApi {
   Future<ApiResponse<User>> signUp(User user, String password);
 
   Future<ApiResponse<String>> sendEmailVerification();
+
+  Future<bool> checkUserNameAvailability(String username);
 }
 
 ///[SessionApi] implement to manage session according to flavour configuration.
@@ -136,6 +139,10 @@ abstract class HomeApi {
   Future<ApiResponse<void>> deletePost(PostModel postModel);
   Future<ApiResponse<void>> deleteComment(PostModel postModel, Comment comment);
   Stream<ApiResponse<PostModel>> fetchSinglePost(String postId);
+}
+
+abstract class ReportApi {
+  Future<ApiResponse<void>> report(Report report);
 }
 
 

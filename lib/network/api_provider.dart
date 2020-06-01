@@ -3,6 +3,7 @@ import 'package:solo/home/chat/api/chat_api.dart';
 import 'package:solo/home/explore/api/explore_api.dart';
 import 'package:solo/home/notifications/api/notification_api.dart';
 import 'package:solo/home/profile/api/profile_api.dart';
+import 'package:solo/home/report/api/firebase_report_api.dart';
 import 'package:solo/network/api_service.dart';
 import 'package:solo/onboarding/login/api/login_api.dart';
 import 'package:solo/onboarding/signup/api/sign_up_api.dart';
@@ -102,6 +103,17 @@ class ApiProvider {
     switch (_flavor) {
       case ApiFlavor.FIREBASE:
         return FirebaseHomeApi();
+      case ApiFlavor.NETWORK:
+        return null;
+    }
+    return null;
+  }
+
+  //PROVIDING REPORT API
+  static ReportApi get reportApi {
+    switch (_flavor) {
+      case ApiFlavor.FIREBASE:
+        return FirebaseReportApi();
       case ApiFlavor.NETWORK:
         return null;
     }
