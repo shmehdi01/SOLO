@@ -26,8 +26,8 @@ class CreatePostNotifier extends ChangeNotifier {
   String get tagNames => _tagNames;
 
   void addImage(context) {
-    ImagePickerHelper.showImagePickerDialog(context, (file) {
-      selectedImage = file;
+    ImagePickerHelper.showImagePickerDialog(context, (file) async {
+      selectedImage = await MyImageCropper.openSquare(file);
       notifyListeners();
     });
   }

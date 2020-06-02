@@ -338,3 +338,17 @@ class Utils {
 final postItemMyOptions = [AppConstant.DELETE_POST, AppConstant.REPORT_POST];
 final postItemOtherOptions = [AppConstant.REPORT_POST];
 
+//if(s.contains("#")) {
+//String preHash = s.substring(0,s.indexOf("#"));
+//String postHash = s.substring(s.indexOf("#"));
+//String other = "";
+//String hashTag = postHash;
+//
+//if(postHash.contains(' ')) {
+//hashTag =  postHash.substring(0,postHash.indexOf(' '));
+//other = postHash.substring(postHash.indexOf(' '));
+//}
+//
+//print(preHash);
+//print(hashTag);
+//print(other);

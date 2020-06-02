@@ -193,8 +193,9 @@ class _HomePageState extends State<HomePage> {
           ),
           onPressed: () {
             //exit(0);
-            ImagePickerHelper.showImagePickerDialog(context, (image) {
-              goToPage(context, CreatePostPage(selectedImage: image,), fullScreenDialog: true);
+            ImagePickerHelper.showImagePickerDialog(context, (image) async {
+              File cropped = await MyImageCropper.openSquare(image);
+              goToPage(context, CreatePostPage(selectedImage: cropped,), fullScreenDialog: true);
             }, header: "Create Post");
           },
         ),

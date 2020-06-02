@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:solo/helper/valdation_helper.dart';
 import 'package:solo/languages/strings_constants.dart';
 import 'package:solo/network/api_provider.dart';
 
@@ -78,7 +79,7 @@ class ForgotPassBody extends StatelessWidget {
                       if(email.isEmpty) {
                         showSnack(context, getString(context, STR_EMAIL_EMPTY));
                       }
-                      else if(!isValidEmail(email)) {
+                      else if(!Validator.isEmail(email)) {
                         showSnack(context, getString(context, STR_EMAIL_INVALID));
                       }
                       else {

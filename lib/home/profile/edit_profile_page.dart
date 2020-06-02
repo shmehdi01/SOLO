@@ -7,6 +7,7 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'package:provider/provider.dart';
 import 'package:solo/helper/dialog_helper.dart';
 import 'package:solo/helper/image_picker_helper.dart';
+import 'package:solo/helper/valdation_helper.dart';
 import 'package:solo/home/profile/edit_profile_state_manager.dart';
 import 'package:solo/session_manager.dart';
 
@@ -104,7 +105,7 @@ class _BodyEdit extends StatelessWidget {
                     child: Row(
                       children: <Widget>[
                         FlatButton(onPressed: () {
-                          value.checkAvailability(userNameController.text);
+                          value.checkAvailability(userNameController.text.trim());
                         },
                           color: appBarColor,
                           child: Text("Check Availability", style: TextStyle(color: Colors.black),),),
@@ -208,8 +209,8 @@ class _BodyEdit extends StatelessWidget {
                     onPressed: () {
                       if (nameController.text.isEmpty) {
                         showSnack(context, "Name should not be empty");
-                      } else if (nameController.text.length < 4) {
-                        showSnack(context, "Name must be at least 4 character");
+                      } else if (!Validator.isName(nameController.text)) {
+                        showSnack(context, "Please enter valid name");
                       } else {
                         value.updateProfile(context, nameController.text, userNameController.text);
                       }

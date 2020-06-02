@@ -2,6 +2,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
+import 'package:solo/helper/valdation_helper.dart';
 import 'package:solo/home/home.dart';
 import 'package:solo/home/notifications/api/push_notification_manager.dart';
 import 'package:solo/languages/strings_constants.dart';
@@ -106,7 +107,7 @@ class LoginActionNotifier with ChangeNotifier {
     if (email.isEmpty) {
       showSnack(context, getString(context, STR_EMAIL_EMPTY));
       return false;
-    } else if (!isValidEmail(email)) {
+    } else if (!Validator.isEmail(email)) {
       showSnack(context, getString(context, STR_EMAIL_INVALID));
       return false;
     } else if (password.isEmpty) {

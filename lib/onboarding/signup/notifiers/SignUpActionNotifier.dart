@@ -1,6 +1,7 @@
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:solo/helper/valdation_helper.dart';
 import 'package:solo/languages/strings_constants.dart';
 import 'package:solo/models/user.dart';
 import 'package:solo/network/api_provider.dart';
@@ -91,7 +92,7 @@ class SignUpActionNotifier with ChangeNotifier {
     } else if (user.email.isEmpty) {
       showSnack(context, getString(context, STR_EMAIL_EMPTY));
       return false;
-    } else if (!isValidEmail(user.email)) {
+    } else if (!Validator.isEmail(user.email)) {
       showSnack(context, getString(context, STR_EMAIL_INVALID));
       return false;
     } else if (password.isEmpty) {

@@ -5,6 +5,7 @@ import 'dart:io';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:solo/helper/valdation_helper.dart';
 import 'package:solo/home/home.dart';
 import 'package:solo/models/user.dart';
 import 'package:solo/network/api_provider.dart';
@@ -56,6 +57,14 @@ class EditProfileStateManager extends ChangeNotifier {
   }
 
   void updateProfile(context, String name, String username) async {
+
+    if(username.trim().isNotEmpty) {
+      bool b = await checkAvailability(username);
+      if(!b) {
+        return;
+      }
+    }
+
     loader= true;
     notifyListeners();
 
@@ -68,6 +77,7 @@ class EditProfileStateManager extends ChangeNotifier {
       final resp = await SessionManager().updateImage(photoFile);
       user.photoUrl = resp.success;
     }
+
 
     user.name = name;
     user.username = username;
@@ -86,20 +96,27 @@ class EditProfileStateManager extends ChangeNotifier {
     Fluttertoast.showToast(msg: "Profile updated Successfully");
   }
 
-  void checkAvailability(String username) async {
-    if(username.isEmpty) {
+  Future<bool> checkAvailability(String username) async {
+    if(username.trim().isEmpty) {
       Fluttertoast.showToast(msg: "Please enter username");
-      return;
+      return false;
+    }
+
+    if(!Validator.isUsername(username)) {
+      Fluttertoast.showToast(msg: "Please enter valid username");
+      return false;
     }
 
     if(username.length < 4) {
       Fluttertoast.showToast(msg: "Username length should be minimum 4");
-      return;
+      return false;
     }
 
     isUserNameAvailable = await ApiProvider.signUpApi.checkUserNameAvailability(username);
     hintText = isUserNameAvailable ? "$username available" : "$username not available";
 
     notifyListeners();
+
+    return isUserNameAvailable;
   }
 }

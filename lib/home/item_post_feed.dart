@@ -3,7 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:photo_view/photo_view.dart';
 import 'package:solo/database/app_constants.dart';
+import 'package:solo/hashtag/HashTagText.dart';
 import 'package:solo/helper/dialog_helper.dart';
+import 'package:solo/home/hash_tag_page.dart';
 import 'package:solo/home/profile/profile_page.dart';
 import 'package:solo/home/report/report_dialogs.dart';
 import 'package:solo/location/locationPage.dart';
@@ -66,7 +68,7 @@ class ItemFeedPost extends StatelessWidget {
     );
   }
 
-  Widget likeWidget() {
+  Widget likeWidget(BuildContext context) {
     bool isLikedByMe = postModel.likes.contains(currentUser);
 
     return InkWell(
@@ -80,6 +82,24 @@ class ItemFeedPost extends StatelessWidget {
           //Like
           print("Tap Like");
           ApiProvider.homeApi.likePost(currentUser, postModel);
+        }
+      },
+      onLongPress: () {
+        if(postModel.likes.length > 0) {
+          final users = <User>[];
+          postModel.likes.forEach((element) {
+            users.add(element.user);
+          });
+          DialogHelper.userList(context, "Liked By", users , onAction: (user) {
+            goToPage(
+                context,
+                ProfilePage(
+                  user,
+                  otherProfile: user.id !=
+                      SessionManager.currentUser.id,
+                  currentUser: SessionManager.currentUser,
+                ));
+          });
         }
       },
       child: Material(
@@ -164,13 +184,20 @@ class ItemFeedPost extends StatelessWidget {
     );
   }
 
-  Widget captionWidget() {
+  Widget captionWidget(BuildContext context) {
     return Row(
       children: <Widget>[
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
-            SizedBox(width: 240, child: Text("${postModel.caption}")),
+            SizedBox(
+                width: 240,
+                child: HashTagText(
+                  text: postModel.caption,
+                  onHashTagClick: (tag) {
+                    goToPage(context, HashTagPage(tag));
+                  },
+                )),
             SizedBox(
               height: 10,
             ),
@@ -202,10 +229,15 @@ class ItemFeedPost extends StatelessWidget {
           subtitle: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
-              Text(comment.comments,
-                  style: TextStyle(
-                    fontSize: FONT_NORMAL,
-                  )),
+              HashTagText(
+                onHashTagClick: (tag) {
+                  goToPage(context, HashTagPage(tag));
+                },
+                text: comment.comments,
+                hashTagStyle: TextStyle(fontWeight: FontWeight.normal, color: Colors.blue),
+                normalTextStyle:
+                    TextStyle(fontSize: FONT_NORMAL, color: Colors.black54),
+              ),
               verticalGap(gap: 4),
               if (comment.timestamp != null)
                 Row(
@@ -353,7 +385,7 @@ class ItemFeedPost extends StatelessWidget {
                               children: <Widget>[
 //                          if (postModel.imageUrl == null ||
 //                              postModel.imageUrl.isEmpty)
-                                captionWidget(),
+                                captionWidget(context),
                                 postModel.imageUrl == null ||
                                         postModel.imageUrl.isEmpty
                                     ? Container()
@@ -383,7 +415,7 @@ class ItemFeedPost extends StatelessWidget {
                               ],
                             ),
                             Positioned(
-                                bottom: 30, right: 0, child: likeWidget())
+                                bottom: 30, right: 0, child: likeWidget(context))
                           ],
                         ),
                         // if (postModel.imageUrl.isNotEmpty) captionWidget(),
@@ -428,9 +460,14 @@ class _BottomSheetCommentState extends State<BottomSheetComment> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
-              Text(
-                "${widget.postModel.caption}",
-                style: TextStyle(
+              HashTagText(
+                onHashTagClick: (tag) {
+                  goToPage(context, HashTagPage(tag));
+                },
+                text: "${widget.postModel.caption}",
+                normalTextStyle: TextStyle(
+                  color: Colors.black,
+                    fontFamily: "Gothom",
                     fontSize: FONT_MEDIUM, fontWeight: FontWeight.w700),
               ),
               verticalGap(gap: 8),
@@ -486,10 +523,15 @@ class _BottomSheetCommentState extends State<BottomSheetComment> {
                                     crossAxisAlignment:
                                         CrossAxisAlignment.start,
                                     children: <Widget>[
-                                      Text(comment.comments,
-                                          style: TextStyle(
-                                            fontSize: FONT_NORMAL,
-                                          )),
+                                      HashTagText(
+                                        onHashTagClick: (tag) {
+                                          goToPage(context, HashTagPage(tag));
+                                        },
+                                        text: comment.comments,
+                                        hashTagStyle: TextStyle(fontWeight: FontWeight.normal, color: Colors.blue),
+                                        normalTextStyle:
+                                        TextStyle(fontSize: FONT_NORMAL, color: Colors.black54),
+                                      ),
                                       verticalGap(gap: 4),
                                       Row(
                                         crossAxisAlignment:

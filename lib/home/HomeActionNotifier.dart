@@ -44,7 +44,6 @@ class HomeActionNotifier with ChangeNotifier {
 
   Future<void> initializeHome() async {
     _currentUser = SessionManager.currentUser;
-    Fluttertoast.showToast(msg: _currentUser.name);
 
     ApiProvider.notificationApi.fetchNotificationStream(_currentUser)
     .listen((onData) {

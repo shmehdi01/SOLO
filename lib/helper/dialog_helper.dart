@@ -3,6 +3,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:solo/models/user.dart';
 import 'package:solo/session_manager.dart';
 import 'package:solo/utils.dart';
 
@@ -145,6 +146,42 @@ class DialogHelper {
                               child: Text(e)),
                         ))
                     .toList()),
+          ),
+        ));
+  }
+
+
+  static void userList(BuildContext context, String header, List<User> users,
+      {@required Function(User) onAction}) {
+    showDialog(
+        context: context,
+        child: Dialog(
+          child: Container(
+            padding: const EdgeInsets.all(12),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: <Widget>[
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Text(header, style: TextStyle(fontWeight: FontWeight.bold),),
+                ),
+                Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: users
+                        .map((e) => Container(
+                      width: MATCH_PARENT,
+                      child: FlatButton(
+                          onPressed: () {
+                            Navigator.pop(context);
+                           if(onAction != null) onAction(e);
+                          },
+                          child: ListTile(leading: userImage(imageUrl: e.photoUrl, radius: 15 ), title: Text(e.name),)),
+                    ))
+                        .toList()),
+              ],
+            ),
           ),
         ));
   }
