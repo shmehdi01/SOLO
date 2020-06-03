@@ -4,6 +4,7 @@ import 'dart:io';
 
 import 'package:flutter/cupertino.dart';
 import 'package:solo/helper/image_picker_helper.dart';
+import 'package:solo/helper/valdation_helper.dart';
 import 'package:solo/location/locationPage.dart';
 import 'package:solo/models/post_model.dart';
 import 'package:solo/models/user.dart';
@@ -67,6 +68,7 @@ class CreatePostNotifier extends ChangeNotifier {
         locations: "",
         likes: [],
         comments: [],
+        hashTags: Validator.splitHashTags(captions),
         timestamp: Utils.timestamp());
 
    await ApiProvider.homeApi.createPost(postModel, imageFile);

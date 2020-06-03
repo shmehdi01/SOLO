@@ -5,7 +5,7 @@ import 'package:photo_view/photo_view.dart';
 import 'package:solo/database/app_constants.dart';
 import 'package:solo/hashtag/HashTagText.dart';
 import 'package:solo/helper/dialog_helper.dart';
-import 'package:solo/home/hash_tag_page.dart';
+import 'package:solo/hashtag/hash_tag_page.dart';
 import 'package:solo/home/profile/profile_page.dart';
 import 'package:solo/home/report/report_dialogs.dart';
 import 'package:solo/location/locationPage.dart';

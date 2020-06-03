@@ -138,11 +138,11 @@ Route createRoute(page) {
   );
 }
 
-Widget userImage({@required String imageUrl, double radius = 30}) {
+Widget userImage({@required String imageUrl, double radius = 30, String placeholder = "$IMAGE_ASSETS/default_dp.png"}) {
   return CircleAvatar(
     radius: radius,
     backgroundImage: imageUrl == null
-        ? AssetImage("$IMAGE_ASSETS/default_dp.png")
+        ? AssetImage(placeholder)
         : CachedNetworkImageProvider(imageUrl),
   );
 }

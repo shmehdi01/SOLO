@@ -1,3 +1,4 @@
+import 'package:solo/hashtag/api/firebase_hashtag_api.dart';
 import 'package:solo/home/api/firebase_home_api.dart';
 import 'package:solo/home/chat/api/chat_api.dart';
 import 'package:solo/home/explore/api/explore_api.dart';
@@ -114,6 +115,18 @@ class ApiProvider {
     switch (_flavor) {
       case ApiFlavor.FIREBASE:
         return FirebaseReportApi();
+      case ApiFlavor.NETWORK:
+        return null;
+    }
+    return null;
+  }
+
+
+  //PROVIDING HASH TAG API
+  static HashTagApi get hashTagApi {
+    switch (_flavor) {
+      case ApiFlavor.FIREBASE:
+        return FirebaseHashTagApi();
       case ApiFlavor.NETWORK:
         return null;
     }

@@ -145,4 +145,7 @@ abstract class ReportApi {
   Future<ApiResponse<void>> report(Report report);
 }
 
+abstract class HashTagApi {
+  Future<ApiResponse<List<PostModel>>> fetchHashTagPost(String hashTag);
+}
 

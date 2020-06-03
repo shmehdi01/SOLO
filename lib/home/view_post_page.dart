@@ -40,12 +40,7 @@ class ViewPostPage extends StatelessWidget {
                 );
               }
 
-              return Column(
-                mainAxisSize: MainAxisSize.min,
-                children: <Widget>[
-                  ItemFeedPost(snapshot.data.success),
-                ],
-              );
+              return SingleChildScrollView(child: ItemFeedPost(snapshot.data.success));
             },),
         ),
       ),
