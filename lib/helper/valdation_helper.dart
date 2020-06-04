@@ -5,11 +5,19 @@ class Validator {
   static const USERNAME_REGEX =
       r"^[^0-9|@#?!.*?$%ˆ&()-+=\\/,][a-zA-Z0-9_]{3,16}$";
   static const HASH_TAG_REGEX = r"#(\w+)";
+  
+  static const LINK_REGEX = r"https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,4}\b([-a-zA-Z0-9@:%_\+.~#?&//=]*)";
+  
+  
 
   static bool isEmail(String email) {
     return RegExp(EMAIL_REGEX).hasMatch(email);
   }
 
+  static bool isLink(String link) {
+    return RegExp(LINK_REGEX).hasMatch(link);
+  }
+  
   static bool isName(String name) {
     return RegExp(NAME_REGEX).hasMatch(name);
   }

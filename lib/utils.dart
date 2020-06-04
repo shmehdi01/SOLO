@@ -260,6 +260,12 @@ class Utils {
     return DateTime.now().millisecondsSinceEpoch.toString();
   }
 
+  static String getBeforeTimestamp({@required int hours}) {
+    final time = DateTime.now();
+    final hoursTime = time.subtract(Duration(hours: hours));
+    return hoursTime.millisecondsSinceEpoch.toString();
+  }
+
   static String displayDate(String millis) {
     if (millis == null || millis.isEmpty) {
       return "While ago";

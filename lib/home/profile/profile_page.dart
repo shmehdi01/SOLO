@@ -1,9 +1,12 @@
+import 'dart:io';
+
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:solo/database/dao/ConnectionDao.dart';
 import 'package:solo/helper/dialog_helper.dart';
+import 'package:solo/helper/image_picker_helper.dart';
 import 'package:solo/home/chat/chat_screen.dart';
 import 'package:solo/home/profile/ProfileActionNotifier.dart';
 import 'package:solo/home/profile/edit_profile_page.dart';
@@ -211,12 +214,19 @@ class __ProfilePageStateState extends State<_ProfilePageState>
                 flexibleSpace: FlexibleSpaceBar(
                     collapseMode: CollapseMode.pin,
                     background: Container(
+                      child: widget.widget._user.bannerUrl != null  && !widget.widget.otherProfile ? null :  Center(child: FlatButton(onPressed: () {
+                        ImagePickerHelper.showImagePickerDialog(context, (image)  async {
+                          File cropped = await MyImageCropper.open(image);
+                          value.changeCoverImage(context, cropped);
+                        }, header: "Choose Cover Image");
+                      },
+                      child: Text(" + Add New Cover"))),
                       decoration: BoxDecoration(
                           image: DecorationImage(
                               image: widget.widget._user.bannerUrl != null
                                   ? CachedNetworkImageProvider(
                                       widget.widget._user.bannerUrl)
-                                  : AssetImage(("$IMAGE_ASSETS/login_bg.jpeg")),
+                                  : AssetImage(("$IMAGE_ASSETS/login_bg")),
                               fit: BoxFit.cover)),
                     )),
               ),

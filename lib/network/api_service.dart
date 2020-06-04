@@ -102,6 +102,8 @@ abstract class ProfileApi {
 ///[ExploreApi] implement explore api
 abstract class ExploreApi {
   Future<ApiResponse<List<User>>> searchUser({@required String query});
+  Future<ApiResponse<List<PostModel>>> explorePost(String time);
+  Future<ApiResponse<Map<String,List<PostModel>>>> trendingTags(String time);
 }
 
 

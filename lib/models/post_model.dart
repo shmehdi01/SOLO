@@ -51,7 +51,8 @@ class PostModel extends BaseModel {
                 i)) /* can't generate it properly yet */)
             .toList(),
         documentID: json["documentID"],
-        hashTags: json['hashTag'] == null ? null : json['hashTags'].cast<String>());
+        hashTags: json.containsKey("hashTags")  && json['hashTags'] != null ? json['hashTags'].cast<String>() : []
+    );
   }
 
   //https://firebasestorage.googleapis.com/v0/b/solo-adcfe.appspot.com/o/posts%2FVumUnSPCCxRu4bANEoslwH1nLWt2%2F1588843268531?alt=media&token=28c4fd58-d280-4d7d-b373-a14f6f58eb2b

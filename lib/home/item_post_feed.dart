@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:photo_view/photo_view.dart';
 import 'package:solo/database/app_constants.dart';
-import 'package:solo/hashtag/HashTagText.dart';
+import 'package:solo/hashtag/SmartText.dart';
 import 'package:solo/helper/dialog_helper.dart';
 import 'package:solo/hashtag/hash_tag_page.dart';
 import 'package:solo/home/profile/profile_page.dart';
@@ -14,6 +14,7 @@ import 'package:solo/models/report_model.dart';
 import 'package:solo/models/user.dart';
 import 'package:solo/network/api_provider.dart';
 import 'package:solo/network/api_service.dart';
+import 'package:solo/webview/web_view.dart';
 
 import '../session_manager.dart';
 import '../utils.dart';
@@ -116,7 +117,7 @@ class ItemFeedPost extends StatelessWidget {
                 width: 15,
               ),
               Text(
-                "${postModel.likes.length} ${postModel.likes.length > 1 ? "Likes" : "Like"}",
+                "${_Utils.countSuffix(postModel.likes.length)} ${postModel.likes.length > 1 ? "Likes" : "Like"}",
                 style:
                     TextStyle(color: isLikedByMe ? likeColor : Colors.black87),
               ),
@@ -174,7 +175,7 @@ class ItemFeedPost extends StatelessWidget {
             SizedBox(
               width: 10,
             ),
-            Text("View Comments"),
+            Text("View ${_Utils.countSuffix(postModel.comments.length)} Comments"),
             SizedBox(
               width: 10,
             ),
@@ -192,10 +193,13 @@ class ItemFeedPost extends StatelessWidget {
           children: <Widget>[
             SizedBox(
                 width: 240,
-                child: HashTagText(
+                child: SmartText(
                   text: postModel.caption,
                   onHashTagClick: (tag) {
                     goToPage(context, HashTagPage(tag));
+                  },
+                  onLinkClick: (link) {
+                    goToPage(context, SoloWebView(link), fullScreenDialog: true);
                   },
                 )),
             SizedBox(
@@ -229,10 +233,11 @@ class ItemFeedPost extends StatelessWidget {
           subtitle: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
-              HashTagText(
+              SmartText(
                 onHashTagClick: (tag) {
                   goToPage(context, HashTagPage(tag));
                 },
+                gist: true,
                 text: comment.comments,
                 hashTagStyle: TextStyle(fontWeight: FontWeight.normal, color: Colors.blue),
                 normalTextStyle:
@@ -399,7 +404,7 @@ class ItemFeedPost extends StatelessWidget {
                                   height: 10,
                                 ),
                                 Container(
-                                    width: 175,
+                                    width: 200,
                                     child: InkWell(
                                         onTap: () {
                                           _Utils.openCommentPage(
@@ -460,7 +465,7 @@ class _BottomSheetCommentState extends State<BottomSheetComment> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
-              HashTagText(
+              SmartText(
                 onHashTagClick: (tag) {
                   goToPage(context, HashTagPage(tag));
                 },
@@ -523,7 +528,7 @@ class _BottomSheetCommentState extends State<BottomSheetComment> {
                                     crossAxisAlignment:
                                         CrossAxisAlignment.start,
                                     children: <Widget>[
-                                      HashTagText(
+                                      SmartText(
                                         onHashTagClick: (tag) {
                                           goToPage(context, HashTagPage(tag));
                                         },
@@ -620,5 +625,27 @@ class _Utils {
         isScrollControlled: true,
         context: context,
         builder: (context) => BottomSheetComment(postModel, itemFeedPost));
+  }
+
+
+  static String countSuffix(int num) {
+    final K = 1000;
+    final M = 1000000;
+    final B = 100000000;
+
+    if(num >= B) {
+      final c = (num/B);
+      return "${c.toStringAsFixed(1)}B";
+    }
+    else if(num >= M) {
+      final c = (num/M);
+      return "${c.toStringAsFixed(1)}M";
+    }
+    else if(num >= K) {
+      final c = (num/K) ;
+      return "${c.toStringAsFixed(1)}K";
+    }
+
+    return "$num";
   }
 }

@@ -23,7 +23,7 @@ class EditProfilePage extends StatelessWidget {
           appBar: AppBar(
             elevation: 0,
             centerTitle: true,
-            title: Text("Edit Profile"),
+            title: Text("Edit Profile",style: TextStyle(fontWeight: FontWeight.bold),),
           ),
           body: _BodyEdit()),
     );
@@ -65,7 +65,7 @@ class _BodyEdit extends StatelessWidget {
                                       ? CachedNetworkImageProvider(
                                           value.user.bannerUrl)
                                       : AssetImage(
-                                          ("$IMAGE_ASSETS/login_bg.jpeg")),
+                                          ("$IMAGE_ASSETS/login_bg")),
                               fit: BoxFit.cover)),
                     ),
                     Row(

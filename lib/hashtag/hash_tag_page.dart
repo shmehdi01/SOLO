@@ -134,10 +134,10 @@ class _HashTagPageState extends State<HashTagPage>
                               controller: _tabController,
                               tabs: <Widget>[
                                 Tab(
-                                  text: "Photos",
+                                  text: "${list.length} Photos",
                                 ),
                                 Tab(
-                                  text: "Posts",
+                                  text: "${posts.length} Posts",
                                 ),
                               ],
                             ),

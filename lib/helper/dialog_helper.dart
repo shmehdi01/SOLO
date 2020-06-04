@@ -103,6 +103,9 @@ class DialogHelper {
                     Text("${bio.isNotEmpty ? "Change Bio" : "Add Bio"}"),
                     verticalGap(gap: 8),
                     TextField(
+                      keyboardType: TextInputType.multiline,
+                      maxLines: 2,
+                      maxLength: 30,
                       controller: bioEditCtrl,
                       decoration: InputDecoration(hintText: "Write Bio"),
                     ),

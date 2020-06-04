@@ -7,6 +7,9 @@ import 'package:solo/models/post_model.dart';
 import 'package:solo/models/user.dart';
 import 'package:solo/network/api_provider.dart';
 
+import '../../utils.dart';
+import '../home.dart';
+
 class PostPage extends StatelessWidget {
 
   final User user;
@@ -22,8 +25,17 @@ class PostPage extends StatelessWidget {
               stream: ApiProvider.homeApi.fetchPostsStream(onlyForID: user.id),
               builder: (BuildContext context, AsyncSnapshot<List<PostModel>> snapshot) {
 
-                if(!snapshot.hasData) {
-                  return Center(child: CircularProgressIndicator(),);
+                if (!snapshot.hasData) {
+                  return Container(
+                      width: MATCH_PARENT,
+                      child: ListView(
+                        children: <Widget>[
+                          ShimmerLoader(),
+                          ShimmerLoader(),
+                          ShimmerLoader(),
+                          verticalGap(gap: 8),
+                        ],
+                      ));
                 }
 
                 value.postCount = snapshot.data.length;

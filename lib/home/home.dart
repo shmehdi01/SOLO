@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:shimmer/shimmer.dart';
 import 'package:solo/helper/image_picker_helper.dart';
 import 'package:solo/home/HomeActionNotifier.dart';
 import 'package:solo/home/chat/FriendsList.dart';
@@ -186,7 +187,7 @@ class _HomePageState extends State<HomePage> {
               borderRadius: BorderRadius.only(
                   topRight: Radius.circular(25),
                   bottomRight: Radius.circular(25))),
-          color: Color(0xffdadada),
+          //color: Color(0xffdadada),
           child: Icon(
             Icons.camera_alt,
             color: Colors.black,
@@ -213,7 +214,7 @@ class _HomePageState extends State<HomePage> {
                 borderRadius: BorderRadius.only(
                     topLeft: Radius.circular(25),
                     bottomLeft: Radius.circular(25))),
-            color: Color(0xffdadada),
+            //color: Color(0xffdadada),
             child: Consumer<HomeActionNotifier>(
               builder: (context, HomeActionNotifier value, w) => Stack(
                 children: <Widget>[
@@ -247,7 +248,7 @@ class _HomePageState extends State<HomePage> {
           ),
         ],
       ),
-      preferredSize: Size.fromHeight(70),
+      preferredSize: Size.fromHeight(60),
     );
   }
 
@@ -357,9 +358,16 @@ class HomeBodyOriginal extends StatelessWidget {
                     builder: (BuildContext context,
                         AsyncSnapshot<List<PostModel>> snapshot) {
                       if (!snapshot.hasData) {
-                        return Center(
-                          child: CircularProgressIndicator(),
-                        );
+                        return Container(
+                          width: MATCH_PARENT,
+                            child: ListView(
+                              children: <Widget>[
+                                ShimmerLoader(),
+                                ShimmerLoader(),
+                                ShimmerLoader(),
+                                verticalGap(gap: 8),
+                              ],
+                            ));
                       }
 
                       if (snapshot.data.isEmpty) {
@@ -495,7 +503,7 @@ class CreateUserPost extends StatelessWidget {
               SizedBox(
                   width: 160,
                   child: Text(
-                    "Share your story with the app community by posting images or videos",
+                    "Share your story with the Solo by posting images or videos",
                     textAlign: TextAlign.center,
                     style: TextStyle(
                         color: Colors.white, fontWeight: FontWeight.normal),
@@ -558,3 +566,72 @@ class CreateUserPost extends StatelessWidget {
     );
   }
 }
+
+class ShimmerLoader extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Shimmer.fromColors(
+      baseColor: Color(0xffdadada),
+      highlightColor: Color(0xffefefef),
+      child: Container(
+        decoration: BoxDecoration(
+            color: Colors.white30,
+            borderRadius: BorderRadius.all(Radius.circular(8))
+        ),
+        width: MATCH_PARENT,
+        padding: const EdgeInsets.all(12),
+        margin: const EdgeInsets.only(left: 20,right: 20, top: 12, bottom: 12),
+        height: 470,
+        child: Column(
+          mainAxisSize: MainAxisSize.max,
+          children: <Widget>[
+            Row(
+
+              children: <Widget>[
+                userImage(imageUrl: null),
+                horizontalGap(gap: 30),
+                Container(
+                  height: 30,
+                  width: 200,
+                  color: Color(0xffdadada),
+                ),
+
+                horizontalGap(gap: 30),
+
+                Container(
+                  height: 30,
+                  width: 10,
+                  color: Color(0xffdadada),
+                )
+              ],
+            ),
+            verticalGap(gap: 12),
+            Container(
+              height: 300,
+              width: 300,
+              decoration: BoxDecoration(
+                  color: Color(0xffdadada),
+                  borderRadius: BorderRadius.all(Radius.circular(8))
+              ),
+            ),
+            verticalGap(gap: 20),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: <Widget>[
+                Container(
+                  decoration: BoxDecoration(
+                      color: Color(0xffdadada),
+                      borderRadius: BorderRadius.all(Radius.circular(8))
+                  ),
+                  height: 40,
+                  width: 300,
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
