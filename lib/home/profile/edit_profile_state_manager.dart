@@ -57,10 +57,9 @@ class EditProfileStateManager extends ChangeNotifier {
   }
 
   void updateProfile(context, String name, String username) async {
-
     if(username.trim().isNotEmpty) {
       bool b = await checkAvailability(username);
-      if(!b) {
+      if(!b && username.isEmpty) {
         return;
       }
     }

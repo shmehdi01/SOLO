@@ -63,6 +63,10 @@ class _FriendsPageBody extends StatelessWidget {
       return Center(child: CircularProgressIndicator());
     }
 
+    if(value.myFollowings == null) {
+      return Center(child:Text("No Friends"));
+    }
+
     return Container(
       child: ListView.builder(
           itemCount: value.myFollowings.length,

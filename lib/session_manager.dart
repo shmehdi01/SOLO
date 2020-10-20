@@ -4,11 +4,13 @@ import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:solo/database/app_constants.dart';
 import 'package:solo/database/dao/ConnectionDao.dart';
 import 'package:solo/database/dao/UsereDao.dart';
 import 'package:solo/database/entity/UserEntity.dart';
 import 'package:solo/models/user.dart';
+import 'package:solo/network/api_error_code.dart';
 import 'package:solo/network/api_provider.dart';
 import 'package:solo/network/api_service.dart';
 import 'package:solo/network/firebase/firebase_storage_manager.dart';
@@ -23,6 +25,7 @@ class SessionManager implements SessionApi {
 
   static User currentUser;
   static List<User> friendsList = [];
+  static FirebaseUser firebaseUser;
 
   SessionManager() {
     _apiFlavor = ApiProvider.apiFlavour;
@@ -68,7 +71,9 @@ class SessionManager implements SessionApi {
     ConnectionDao().deleteAll();
     UserDao().deleteAll();
     SessionManager.currentUser = null;
-    SessionManager.friendsList.clear();
+
+    if(friendsList != null)
+      SessionManager.friendsList.clear();
 
     return response;
   }
@@ -79,8 +84,12 @@ class SessionManager implements SessionApi {
     User user;
     switch (_apiFlavor) {
       case ApiFlavor.FIREBASE:
-        FirebaseUser firebaseUser = await FirebaseAuth.instance.currentUser();
+        firebaseUser = await FirebaseAuth.instance.currentUser();
+
         if (firebaseUser != null) {
+
+          print(firebaseUser.providerData);
+
           var readResp = await FirestoreManager.readUserByID(firebaseUser.uid);
           if (readResp.hasError)
             user = null;
@@ -249,10 +258,12 @@ class SessionManager implements SessionApi {
     ApiResponse<List<User>> apiResponse = ApiResponse();
 
     var listUser = <User>[];
-    var followingIds = <String>[];
+    var followingIds = Set<String>();
 
     if(connections.length == 0) {
-
+      apiResponse.hasError = true;
+      apiResponse.error = ApiError("No Connections", ErrorCode.NO_RESULT_FOUND);
+      return apiResponse;
     }
 
     connections.forEach((con) {
@@ -262,7 +273,7 @@ class SessionManager implements SessionApi {
     print(("IDs are : $followingIds"));
 
     var ref = await FirestoreManager.getCollectionRef(Collection.USER);
-    var snap = await ref.where("id", whereIn: followingIds).getDocuments();
+    var snap = await ref.where("id", whereIn: followingIds.toList()).getDocuments();
 
     print("List of User ${snap.documents.length}");
     snap.documents.forEach((f) {

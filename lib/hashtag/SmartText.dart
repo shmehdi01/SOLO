@@ -54,7 +54,6 @@ class SmartText extends StatelessWidget {
     }
 
     final captions = _splitStr(text);
-    print("new split ${captions.length}");
 
     bool b =  gist && captions.length > gistLength;
     if(b) captions.insert(gistLength-1, "\n...");

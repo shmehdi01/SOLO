@@ -17,8 +17,11 @@ import 'package:solo/utils.dart';
 class HomeActionNotifier with ChangeNotifier {
   FirebaseUser _user;
   User _currentUser;
+  User otherUser;
 
   HomePageState _homePageState = HomePageState.HOME;
+
+  ScrollController scrollController;
 
   HomePageState get pageState => _homePageState;
 
@@ -31,13 +34,15 @@ class HomeActionNotifier with ChangeNotifier {
   int unReadMessage = 0;
 
 
-  HomeActionNotifier({@required User user, HomePageState homePageState}) {
+  HomeActionNotifier({@required User user, this.otherUser, HomePageState homePageState}) {
     this._homePageState = homePageState;
     SessionManager.currentUser = user;
+    scrollController = ScrollController();
     initializeHome();
   }
 
   set updatePage(HomePageState state) {
+    otherUser = null;
     _homePageState = state;
     notifyListeners();
   }

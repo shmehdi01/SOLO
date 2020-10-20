@@ -2,8 +2,10 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:solo/home/chat/chat_page.dart';
 import 'package:solo/models/Collection.dart';
+import 'package:solo/models/block_model.dart';
 import 'package:solo/models/chat_model.dart';
 import 'package:solo/network/api_service.dart';
+import 'package:solo/utils.dart';
 
 import '../../../session_manager.dart';
 
@@ -104,7 +106,7 @@ class FirebaseChatApi extends ChatApi {
 
   @override
   Stream<List<ChatListModel>> fetchAllChat(String userID) {
-    print("my id $userID");
+
     var querySnapshot = Firestore.instance
         .collection(Collection.CHAT_LIST)
         .document(userID)
@@ -143,6 +145,10 @@ class FirebaseChatApi extends ChatApi {
         }
       });
 
+      list.sort((a,b) {
+        return b.timestamp.compareTo(a.timestamp);
+      });
+
       return list;
     });
 
@@ -167,5 +173,50 @@ class FirebaseChatApi extends ChatApi {
         .collection(userID)
         .document(chatID)
         .setData(chatListModel.toMap());
+  }
+
+  @override
+  Future<void> blockUser(String userID) async {
+     Block block = Block(myID: SessionManager.currentUser.id,blockedID: userID, timestamp: Utils.timestamp());
+
+     await Firestore.instance
+     .collection(Collection.BLOCK)
+     .add(block.toMap());
+  }
+
+  @override
+  Future<Block> isBlocked(String userID) async {
+    final snap1 = await Firestore.instance
+        .collection(Collection.BLOCK)
+        .where("myID", isEqualTo: SessionManager.currentUser.id)
+        .where("blockedID", isEqualTo: userID)
+        .getDocuments();
+
+    if(snap1.documents.length > 0) {
+      return Block.fromJson(snap1.documents[0].data);
+    }
+
+    final snap2 = await Firestore.instance
+        .collection(Collection.BLOCK)
+        .where("blockedID", isEqualTo: SessionManager.currentUser.id)
+        .where("myID", isEqualTo: userID)
+        .getDocuments();
+
+    if(snap2.documents.length > 0) {
+      return Block.fromJson(snap2.documents[0].data);
+    }
+
+    return null;
+  }
+
+  @override
+  Future<void> unblock(String userID) async {
+
+   final doc =  await Firestore.instance.collection(Collection.BLOCK)
+        .where("myID", isEqualTo: SessionManager.currentUser.id)
+        .where("blockedID", isEqualTo: userID)
+        .getDocuments();
+
+   await doc.documents[0].reference.delete();
   }
 }

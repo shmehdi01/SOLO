@@ -35,7 +35,7 @@ class _HashTagPageState extends State<HashTagPage>
   }
 
   Future<ApiResponse<List<PostModel>>> loadTagsPost() async {
-    final resp = await ApiProvider.hashTagApi.fetchHashTagPost(widget.hashTag);
+    final resp = await ApiProvider.hashTagApi.fetchHashTagPost(widget.hashTag.replaceAll(RegExp(r"[\u1000-\uFFFF]+"),""));
     setState(() {
       postCount = resp.success.length;
       posts = resp.success;
@@ -43,12 +43,13 @@ class _HashTagPageState extends State<HashTagPage>
         if (element.imageUrl.isNotEmpty) list.add(element);
       });
     });
-
     return resp;
   }
 
   @override
   Widget build(BuildContext context) {
+
+    debugPrint("HashTag: ${widget.hashTag.replaceAll(RegExp(r"[\u1000-\uFFFF]+"), "")}");
     return DefaultTabController(
       length: 2,
       child: Scaffold(
@@ -152,30 +153,27 @@ class _HashTagPageState extends State<HashTagPage>
           ),
           body: new TabBarView(
             children: <Widget>[
-              Expanded(
-                  child: StaggeredGridView.countBuilder(
+              StaggeredGridView.countBuilder(
                 crossAxisCount: 4,
                 itemCount: list.length,
                 itemBuilder: (BuildContext context, int index) {
-                  final postModel = list[index];
+              final postModel = list[index];
 
-                  if(list.isEmpty)
-                    return Center(child: Text("No photos related to ${widget.hashTag}"),);
+              if(list.isEmpty)
+                return Center(child: Text("No photos related to ${widget.hashTag}"),);
 
-                  return imageWidget(context, postModel);
+              return imageWidget(context, postModel);
                 },
                 staggeredTileBuilder: (int index) => StaggeredTile.count(
-                    index % 5 == 0 ? 2 : 1, index % 5 == 0 ? 2 : 1),
+                index % 5 == 0 ? 2 : 1, index % 5 == 0 ? 2 : 1),
                 mainAxisSpacing: 4.0,
                 crossAxisSpacing: 4.0,
-              )),
-              Expanded(
-                child: ListView.builder(
-                    itemCount: posts.length,
-                    itemBuilder: (context, index) {
-                      return ItemFeedPost(posts[index]);
-                    }),
-              )
+              ),
+              ListView.builder(
+                  itemCount: posts.length,
+                  itemBuilder: (context, index) {
+                    return ItemFeedPost(posts[index]);
+                  })
             ],
           )),
     );

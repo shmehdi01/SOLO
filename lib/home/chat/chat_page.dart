@@ -48,6 +48,12 @@ class ChatListBody extends StatelessWidget {
             );
           }
 
+          if (snapshot.data.isEmpty) {
+            return Center(
+              child: Text("No Chats"),
+            );
+          }
+
           return ListView.builder(
               itemCount: snapshot.data.length,
               itemBuilder: (context, index) {

@@ -339,4 +339,10 @@ class FirebaseHomeApi extends HomeApi {
 
     return x;
   }
+
+  @override
+  Future<void> deleteAccount() {
+    // TODO: implement deleteAccount
+    throw UnimplementedError();
+  }
 }

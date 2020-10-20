@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/cupertino.dart';
 import 'package:solo/home/chat/chat_page.dart';
 import 'package:solo/home/chat/chat_screen.dart';
+import 'package:solo/models/block_model.dart';
 import 'package:solo/models/chat_model.dart';
 import 'package:solo/models/connections.dart';
 import 'package:solo/models/follow_detail.dart';
@@ -102,6 +103,7 @@ abstract class ProfileApi {
 ///[ExploreApi] implement explore api
 abstract class ExploreApi {
   Future<ApiResponse<List<User>>> searchUser({@required String query});
+  Future<ApiResponse<List<String>>> searchTopic({@required String query});
   Future<ApiResponse<List<PostModel>>> explorePost(String time);
   Future<ApiResponse<Map<String,List<PostModel>>>> trendingTags(String time);
 }
@@ -128,12 +130,15 @@ abstract class ChatApi {
   Stream<List<ChatListModel>> fetchAllChat(String userID);
   Future<void> setChatList(ChatListModel chatListModel, chatID, String userID);
   Future<void> updateChatList(Map<String, dynamic> map, chatID, String userID);
+  Future<void> blockUser(String userID);
+  Future<Block> isBlocked(String userID);
+  Future<void> unblock(String userID);
 }
 
 
 abstract class HomeApi {
   Future<ApiResponse<User>> fetchUserByID(String id);
-  Future<ApiResponse<void>> createPost(PostModel postModel, File imageFile);
+  Future<ApiResponse<void>> createPost(PostModel postModel, File file);
   Future<ApiResponse<List<PostModel>>> fetchPosts();
   Stream<List<PostModel>> fetchPostsStream({String onlyForID = ""});
   Future<ApiResponse<void>> likePost(User user, PostModel postModel, {bool removeLike = false});
@@ -141,6 +146,7 @@ abstract class HomeApi {
   Future<ApiResponse<void>> deletePost(PostModel postModel);
   Future<ApiResponse<void>> deleteComment(PostModel postModel, Comment comment);
   Stream<ApiResponse<PostModel>> fetchSinglePost(String postId);
+  Future<void> deleteAccount();
 }
 
 abstract class ReportApi {

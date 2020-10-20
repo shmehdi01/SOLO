@@ -7,6 +7,11 @@ import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
 import 'package:solo/database/app_constants.dart';
+import 'package:solo/session_manager.dart';
+
+import 'home/HomeActionNotifier.dart';
+import 'home/home.dart';
+import 'models/user.dart';
 
 const double FONT_VERY_SMALL = 10;
 const double FONT_SMALL = 12;
@@ -256,6 +261,13 @@ const String TIME_FORMAT = "hh:mm:ss";
 const String DATE_FORMAT = "dd MM yyyy";
 
 class Utils {
+
+  static openProfilePage(context, User user) {
+    goToPage(context, HomeDashboard(user: SessionManager.currentUser,
+      otherUser: user.id != SessionManager.currentUser.id ? user : null,
+      homePageState: HomePageState.PROFILE,));
+  }
+
   static String timestamp() {
     return DateTime.now().millisecondsSinceEpoch.toString();
   }
@@ -341,8 +353,8 @@ class Utils {
   }
 }
 
-final postItemMyOptions = [AppConstant.DELETE_POST, AppConstant.REPORT_POST];
-final postItemOtherOptions = [AppConstant.REPORT_POST];
+final postItemMyOptions = List<String>()..add(AppConstant.DELETE_POST)..add(AppConstant.REPORT_POST);
+final postItemOtherOptions = List<String>()..add(AppConstant.REPORT_POST);
 
 //if(s.contains("#")) {
 //String preHash = s.substring(0,s.indexOf("#"));

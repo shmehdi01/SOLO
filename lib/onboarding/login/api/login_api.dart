@@ -25,6 +25,7 @@ class FirebaseLogin implements LoginApi {
     if (result != null) {
       //READING FROM FIRE STORE DATABASE
       var readResp = await FirestoreManager.readUserByID(result.user.uid);
+      readResp.success.isEmailVerified = result.user.isEmailVerified;
       apiResponse.error = readResp.error;
       apiResponse.hasError = readResp.hasError;
 
@@ -110,6 +111,7 @@ class FirebaseLogin implements LoginApi {
           print("User Deleted (${result.user.email})");
         }
 
+        newUser.isEmailVerified = result.user.isEmailVerified;
         apiResponse.success = newUser;
       }
 
@@ -169,6 +171,7 @@ class FirebaseLogin implements LoginApi {
               print("User Deleted (${result.user.email})");
             }
 
+            newUser.isEmailVerified = result.user.isEmailVerified;
             apiResponse.success = newUser;
           }
 

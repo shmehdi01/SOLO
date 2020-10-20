@@ -2,10 +2,14 @@ import 'dart:io';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
+import 'package:solo/helper/dialog_helper.dart';
 import 'package:solo/home/create_post_notifier.dart';
 import 'package:solo/models/user.dart';
 import 'package:solo/session_manager.dart';
+import 'package:video_player/video_player.dart';
 
 import '../utils.dart';
 
@@ -130,6 +134,9 @@ class _CreatePostBody extends StatelessWidget {
               InkWell(
                 onTap: () {
                   //goToPage(context, RoutesWidget());
+                  DialogHelper.addLocation(context, (location) {
+                    value.setLocation = location;
+                  });
                 },
                 child: Container(
                   padding: const EdgeInsets.all(12),
@@ -139,7 +146,7 @@ class _CreatePostBody extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: <Widget>[
                       Text(
-                        "Add Location",
+                        value.location.isNotEmpty ? value.location :  "Add Location",
                         style: TextStyle(
                             fontWeight: FontWeight.bold, fontSize: FONT_MEDIUM),
                       ),
@@ -147,6 +154,14 @@ class _CreatePostBody extends StatelessWidget {
                   ),
                 ),
               ),
+              if(value.selectedVideo != null) Container(
+                height: 300,
+                color: Colors.blue,
+                child: AspectRatio(
+                  aspectRatio: value.videoPlayerController.value.aspectRatio,
+                  child: VideoPlayer(value.videoPlayerController),
+                ),
+              )
             ],
           ),
         );
@@ -176,6 +191,10 @@ class _CreatePostBody extends StatelessWidget {
                       border: OutlineInputBorder(borderSide: BorderSide.none)),
                 ),
               ),
+              FlatButton(onPressed: ()  {
+                value.testVideo();
+              },
+              child: Text("Record Video"),),
               horizontalGap(gap: 8),
               InkWell(
                 onTap: () {
@@ -224,9 +243,9 @@ void pickFriendDialog(
       child: Dialog(
         child: StatefulBuilder(
           builder: (BuildContext context, StateSetter setState) => Container(
-            height: 320,
             padding: const EdgeInsets.all(12),
             child: Column(
+              mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
                 Text(
@@ -241,6 +260,12 @@ void pickFriendDialog(
                     if (!snapshot.hasData) {
                       return Center(
                         child: CircularProgressIndicator(),
+                      );
+                    }
+
+                    if (snapshot.data.isEmpty) {
+                      return Center(
+                        child: Text("No Friends"),
                       );
                     }
 

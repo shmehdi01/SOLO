@@ -56,6 +56,17 @@ const tables = <String>[
       isSync tinyint(1) DEFAULT 0 
      )  
 ''',
+
+  '''
+  CREATE TABLE ${Collection.SEARCH_KEYWORDS} ( 
+      id INTEGER PRIMARY KEY AUTOINCREMENT, 
+      keyword VARCHAR(256), 
+      type VARCHAR(256),
+      timestamp VARCHAR(256),
+      isRead tinyint(1)  DEFAULT 0,
+      isSync tinyint(1) DEFAULT 0 
+     )  
+''',
 ];
 
 class ChatTableHelper {

@@ -7,6 +7,7 @@ class PostModel extends BaseModel {
   User user;
   String caption;
   String imageUrl;
+  String mediaType;
   List<User> tagsUser;
   String locations;
   String timestamp;
@@ -21,6 +22,7 @@ class PostModel extends BaseModel {
       this.user,
       this.caption,
       this.imageUrl,
+        this.mediaType,
       this.tagsUser,
       this.locations,
       this.timestamp,
@@ -36,6 +38,7 @@ class PostModel extends BaseModel {
         user: User.fromMap(Map<String, dynamic>.from(json["user"])),
         caption: json["caption"],
         imageUrl: json["imageUrl"],
+        mediaType: json.containsKey("mediaType") ? json["mediaType"] : "image",
         tagsUser: List.of(json["tagsUser"])
             .map((i) => User.fromMap(Map<String, dynamic>.from(
                 i)) /* can't generate it properly yet */)
@@ -63,6 +66,7 @@ class PostModel extends BaseModel {
       "user": this.user.toMap(),
       "caption": this.caption,
       "imageUrl": this.imageUrl,
+      "mediaType": this.mediaType,
       "tagsUser": List.of(tagsUser).map<Map<String, dynamic>>((user) {
         return user.toMap();
       }).toList(),

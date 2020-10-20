@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/cupertino.dart';
@@ -11,6 +12,7 @@ import 'package:solo/home/chat/chat_page.dart';
 import 'package:solo/home/explore/explore_page.dart';
 import 'package:solo/home/notifications/notification_page.dart';
 import 'package:solo/home/profile/profile_page.dart';
+import 'package:solo/home/verify_page.dart';
 import 'package:solo/models/post_model.dart';
 import 'package:solo/models/user.dart';
 import 'package:solo/network/api_provider.dart';
@@ -22,20 +24,24 @@ import 'item_post_feed.dart';
 
 class HomeDashboard extends StatelessWidget {
   final User user;
+  final User otherUser;
   final HomePageState homePageState;
 
-  HomeDashboard({@required this.user, this.homePageState = HomePageState.HOME});
+  HomeDashboard(
+      {@required this.user,
+      this.otherUser,
+      this.homePageState = HomePageState.HOME});
 
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
         create: (BuildContext context) =>
-            HomeActionNotifier(user: user, homePageState: homePageState),
+            HomeActionNotifier(user: user, otherUser: otherUser, homePageState: homePageState),
         child: Scaffold(
-          body: HomePage(
-            user: SessionManager.currentUser,
+          body: user.isEmailVerified ? HomePage(
+            user: user,
             homePageState: homePageState,
-          ),
+          ): EmailVerifyPage(),
         ));
   }
 }
@@ -51,6 +57,7 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+
   @override
   void didUpdateWidget(HomePage oldWidget) {
     WidgetsFlutterBinding.ensureInitialized();
@@ -76,6 +83,13 @@ class _HomePageState extends State<HomePage> {
                   onPressed: () {
                     Provider.of<HomeActionNotifier>(context, listen: false)
                         .updatePage = HomePageState.HOME;
+
+                    //value.scrollController.jumpTo(0);
+//                    value.scrollController.animateTo(
+//                        0,
+//                        duration: Duration(milliseconds: 300),
+//                        curve: Curves.easeOut);
+
                   },
                   icon: Icon(
                     Icons.home,
@@ -147,7 +161,8 @@ class _HomePageState extends State<HomePage> {
                   heroTag: "CreatePost",
                   child: Icon(Icons.add),
                   onPressed: () {
-                    Navigator.push(context, createRoute(CreateUserPost()));
+                    goToPage(context, CreatePostPage(),);
+                    //Navigator.push(context, createRoute(CreateUserPost()));
                   },
                 )
               : Container(),
@@ -168,7 +183,13 @@ class _HomePageState extends State<HomePage> {
                   page = ChatPage(value.currentUser);
                   break;
                 case HomePageState.PROFILE:
-                  page = ProfilePage(value.currentUser);
+                  page = ProfilePage(
+                    value.otherUser != null
+                        ? value.otherUser
+                        : value.currentUser,
+                    otherProfile: value.otherUser != null,
+                    currentUser: value.currentUser,
+                  );
                   break;
               }
               return page;
@@ -196,7 +217,12 @@ class _HomePageState extends State<HomePage> {
             //exit(0);
             ImagePickerHelper.showImagePickerDialog(context, (image) async {
               File cropped = await MyImageCropper.openSquare(image);
-              goToPage(context, CreatePostPage(selectedImage: cropped,), fullScreenDialog: true);
+              goToPage(
+                  context,
+                  CreatePostPage(
+                    selectedImage: cropped,
+                  ),
+                  fullScreenDialog: true);
             }, header: "Create Post");
           },
         ),
@@ -261,7 +287,9 @@ class _HomePageState extends State<HomePage> {
             color: Colors.black,
           ),
           onPressed: () {
-            showSearch(context: context, delegate: SearchUser(SessionManager.currentUser));
+            showSearch(
+                context: context,
+                delegate: SearchUser(SessionManager.currentUser));
           },
         ),
         centerTitle: true,
@@ -357,9 +385,12 @@ class HomeBodyOriginal extends StatelessWidget {
                     stream: ApiProvider.homeApi.fetchPostsStream(),
                     builder: (BuildContext context,
                         AsyncSnapshot<List<PostModel>> snapshot) {
-                      if (!snapshot.hasData) {
+
+                      print(snapshot);
+
+                      if (snapshot.connectionState == ConnectionState.waiting) {
                         return Container(
-                          width: MATCH_PARENT,
+                            width: MATCH_PARENT,
                             child: ListView(
                               children: <Widget>[
                                 ShimmerLoader(),
@@ -371,12 +402,49 @@ class HomeBodyOriginal extends StatelessWidget {
                       }
 
                       if (snapshot.data.isEmpty) {
-                        return Center(
-                          child: Text("No Post Yet"),
+                        return Container(
+                          padding: const EdgeInsets.all(12),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Card(
+                                child: Container(
+                                  padding: const EdgeInsets.all(12),
+                                  child: Column(
+                                    children: [
+                                      userImage(imageUrl: null, placeholder: "$IMAGE_ASSETS/icon_circle.png"),
+                                      verticalGap(gap: 12),
+                                      Text("Welcome To Solo", style: TextStyle(fontSize: FONT_LARGE, fontWeight: FontWeight.bold),),
+                                      verticalGap(gap: 8),
+                                      Text("When you follow people, you'll see the photos and text they are post here",
+                                        textAlign: TextAlign.center,
+                                        style: TextStyle(color: Colors.grey),
+                                      ),
+                                      verticalGap(gap: 12),
+                                      MaterialButton(
+                                        color: Colors.blue,
+                                        textColor: Colors.white,
+                                        child: Text("Find People to Follow"),
+                                        onPressed: () {
+                                          showSearch(
+                                              context: context,
+                                              delegate: SearchUser(SessionManager.currentUser));
+                                      },)
+                                    ],
+                                  ),
+                                ),
+                              ),
+                              verticalGap(gap: 12),
+
+                              Text("No Post Yet", style: TextStyle(color: Colors.grey),)
+                            ],
+                          ),
                         );
                       }
 
                       return ListView.builder(
+                        controller: value.scrollController,
                           itemCount: snapshot.data.length,
                           itemBuilder: (ctx, index) =>
                               ItemFeedPost(snapshot.data[index]));
@@ -576,28 +644,24 @@ class ShimmerLoader extends StatelessWidget {
       child: Container(
         decoration: BoxDecoration(
             color: Colors.white30,
-            borderRadius: BorderRadius.all(Radius.circular(8))
-        ),
+            borderRadius: BorderRadius.all(Radius.circular(8))),
         width: MATCH_PARENT,
         padding: const EdgeInsets.all(12),
-        margin: const EdgeInsets.only(left: 20,right: 20, top: 12, bottom: 12),
+        margin: const EdgeInsets.only(left: 20, right: 20, top: 12, bottom: 12),
         height: 470,
         child: Column(
           mainAxisSize: MainAxisSize.max,
           children: <Widget>[
             Row(
-
               children: <Widget>[
                 userImage(imageUrl: null),
-                horizontalGap(gap: 30),
+                horizontalGap(gap: 10),
                 Container(
                   height: 30,
                   width: 200,
                   color: Color(0xffdadada),
                 ),
-
                 horizontalGap(gap: 30),
-
                 Container(
                   height: 30,
                   width: 10,
@@ -611,8 +675,7 @@ class ShimmerLoader extends StatelessWidget {
               width: 300,
               decoration: BoxDecoration(
                   color: Color(0xffdadada),
-                  borderRadius: BorderRadius.all(Radius.circular(8))
-              ),
+                  borderRadius: BorderRadius.all(Radius.circular(8))),
             ),
             verticalGap(gap: 20),
             Row(
@@ -621,8 +684,7 @@ class ShimmerLoader extends StatelessWidget {
                 Container(
                   decoration: BoxDecoration(
                       color: Color(0xffdadada),
-                      borderRadius: BorderRadius.all(Radius.circular(8))
-                  ),
+                      borderRadius: BorderRadius.all(Radius.circular(8))),
                   height: 40,
                   width: 300,
                 ),
@@ -634,4 +696,3 @@ class ShimmerLoader extends StatelessWidget {
     );
   }
 }
-

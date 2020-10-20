@@ -6,6 +6,8 @@ import 'package:solo/database/app_constants.dart';
 import 'package:solo/hashtag/SmartText.dart';
 import 'package:solo/helper/dialog_helper.dart';
 import 'package:solo/hashtag/hash_tag_page.dart';
+import 'package:solo/home/HomeActionNotifier.dart';
+import 'package:solo/home/home.dart';
 import 'package:solo/home/profile/profile_page.dart';
 import 'package:solo/home/report/report_dialogs.dart';
 import 'package:solo/location/locationPage.dart';
@@ -15,6 +17,7 @@ import 'package:solo/models/user.dart';
 import 'package:solo/network/api_provider.dart';
 import 'package:solo/network/api_service.dart';
 import 'package:solo/webview/web_view.dart';
+import 'package:video_player/video_player.dart';
 
 import '../session_manager.dart';
 import '../utils.dart';
@@ -26,7 +29,16 @@ class ItemFeedPost extends StatelessWidget {
 
   final likeColor = Color(0xffFE375F);
 
-  ItemFeedPost(this.postModel);
+  VideoPlayerController videoController;
+
+  ItemFeedPost(this.postModel)  {
+    if(postModel.mediaType == "video")  {
+      videoController = VideoPlayerController.network(postModel.imageUrl);
+      videoController.initialize().then((value){
+         videoController.play();
+      });
+    }
+  }
 
   Widget commentEditField(context) {
     return Material(
@@ -92,14 +104,15 @@ class ItemFeedPost extends StatelessWidget {
             users.add(element.user);
           });
           DialogHelper.userList(context, "Liked By", users , onAction: (user) {
-            goToPage(
-                context,
-                ProfilePage(
-                  user,
-                  otherProfile: user.id !=
-                      SessionManager.currentUser.id,
-                  currentUser: SessionManager.currentUser,
-                ));
+            Utils.openProfilePage(context, user);
+//            goToPage(
+//                context,
+//                ProfilePage(
+//                  user,
+//                  otherProfile: user.id !=
+//                      SessionManager.currentUser.id,
+//                  currentUser: SessionManager.currentUser,
+//                ));
           });
         }
       },
@@ -285,6 +298,8 @@ class ItemFeedPost extends StatelessWidget {
     final init = ApiResponse<User>();
     init.success = postModel.user;
 
+
+
     return FutureBuilder(
         initialData: init,
         future: ApiProvider.homeApi.fetchUserByID(postModel.userId),
@@ -309,14 +324,15 @@ class ItemFeedPost extends StatelessWidget {
                       children: <Widget>[
                         InkWell(
                           onTap: () {
-                            goToPage(
-                                context,
-                                ProfilePage(
-                                  postModel.user,
-                                  otherProfile: postModel.user.id !=
-                                      SessionManager.currentUser.id,
-                                  currentUser: SessionManager.currentUser,
-                                ));
+                            Utils.openProfilePage(context, postModel.user);
+//                            goToPage(
+//                                context,
+//                                ProfilePage(
+//                                  postModel.user,
+//                                  otherProfile: postModel.user.id !=
+//                                      SessionManager.currentUser.id,
+//                                  currentUser: SessionManager.currentUser,
+//                                ));
                           },
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -344,11 +360,16 @@ class ItemFeedPost extends StatelessWidget {
                               IconButton(
                                   icon: Icon(Icons.more_vert),
                                   onPressed: () {
+                                    final list = <String>[];
+
+                                    if(postModel.tagsUser.isNotEmpty) list.add(AppConstant.TAGGED_USER);
+                                    if(postModel.userId == currentUser.id) list.add(AppConstant.DELETE_POST);
+
+                                    list.add(AppConstant.REPORT_POST);
+
                                     DialogHelper.postItemOption(
                                         context,
-                                        postModel.userId == currentUser.id
-                                            ? postItemMyOptions
-                                            : postItemOtherOptions,
+                                        list,
                                         onAction: (str) {
                                       if (str == AppConstant.DELETE_POST) {
                                         DialogHelper.customAlertDialog(context,
@@ -373,6 +394,8 @@ class ItemFeedPost extends StatelessWidget {
                                             reportingID: postModel.id,
                                             user: SessionManager.currentUser);
                                         //REPORT
+                                      }else if(str == AppConstant.TAGGED_USER) {
+                                        DialogHelper.userList(context, "Tagged Users", postModel.tagsUser, onAction: null);
                                       }
                                     });
                                   })
@@ -391,15 +414,39 @@ class ItemFeedPost extends StatelessWidget {
 //                          if (postModel.imageUrl == null ||
 //                              postModel.imageUrl.isEmpty)
                                 captionWidget(context),
+                               if(postModel.locations.isNotEmpty) Text("- ${postModel.locations}", style: TextStyle(color: Colors.grey, fontSize: FONT_SMALL),),
+                                verticalGap(gap: 8),
                                 postModel.imageUrl == null ||
                                         postModel.imageUrl.isEmpty
                                     ? Container()
                                     : InkWell(
                                         onTap: () {
-                                          showImageViewerDialog(
-                                              context, postModel.imageUrl);
+                                          if(postModel.mediaType == "image") {
+                                            showImageViewerDialog(
+                                                context, postModel.imageUrl);
+                                          }
                                         },
-                                        child: imageWidget()),
+                                        child: postModel.mediaType == "image" ? imageWidget() : Container(
+                                          color:Colors.blue,
+                                          child: AspectRatio(
+                                            aspectRatio: videoController.value.aspectRatio,
+                                            child: Stack(
+                                              children: [
+                                                VideoPlayer(videoController),
+                                                Center(
+                                                  child: IconButton(onPressed: () {
+                                                    if(videoController.value.isPlaying) {
+                                                      videoController.pause();
+                                                    }
+                                                    else {
+                                                      videoController.play();
+                                                    }
+                                                  }, icon: Icon(Icons.play_circle_filled, size: 50, color: Colors.white,),),
+                                                )
+                                              ],
+                                            ),
+                                          ),
+                                        )),
                                 SizedBox(
                                   height: 10,
                                 ),
@@ -503,15 +550,16 @@ class _BottomSheetCommentState extends State<BottomSheetComment> {
                                 child: ListTile(
                                   leading: InkWell(
                                       onTap: () {
-                                        goToPage(
-                                            context,
-                                            ProfilePage(
-                                              comment.user,
-                                              otherProfile: comment.user.id !=
-                                                  SessionManager.currentUser.id,
-                                              currentUser:
-                                                  SessionManager.currentUser,
-                                            ));
+                                        Utils.openProfilePage(context, comment.user);
+//                                        goToPage(
+//                                            context,
+//                                            ProfilePage(
+//                                              comment.user,
+//                                              otherProfile: comment.user.id !=
+//                                                  SessionManager.currentUser.id,
+//                                              currentUser:
+//                                                  SessionManager.currentUser,
+//                                            ));
                                       },
                                       child: userImage(
                                           imageUrl: comment.user.photoUrl,
@@ -626,7 +674,6 @@ class _Utils {
         context: context,
         builder: (context) => BottomSheetComment(postModel, itemFeedPost));
   }
-
 
   static String countSuffix(int num) {
     final K = 1000;

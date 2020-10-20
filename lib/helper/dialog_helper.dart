@@ -4,10 +4,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:solo/models/user.dart';
+import 'package:solo/network/api_provider.dart';
 import 'package:solo/session_manager.dart';
 import 'package:solo/utils.dart';
 
 class DialogHelper {
+
   static void changePassword(BuildContext context) {
     final currentPassController = TextEditingController();
     final newPassController = TextEditingController();
@@ -22,7 +24,7 @@ class DialogHelper {
               mainAxisSize: MainAxisSize.min,
               children: <Widget>[
                 Text(
-                  "Chaange Password",
+                  "Change Password",
                   style: TextStyle(
                       fontWeight: FontWeight.bold, fontSize: FONT_MEDIUM),
                 ),
@@ -81,6 +83,127 @@ class DialogHelper {
                     style: TextStyle(color: Colors.white),
                   ),
                 )
+              ],
+            ),
+          ),
+        ));
+  }
+
+  static void addLocation(BuildContext context, Function(String) onLocation) {
+    final locationCtrl = TextEditingController();
+
+    showDialog(
+        context: context,
+        child: Dialog(
+          child: Container(
+            padding: const EdgeInsets.all(12),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: <Widget>[
+                Text(
+                  "Location",
+                  style: TextStyle(
+                      fontWeight: FontWeight.bold, fontSize: FONT_MEDIUM),
+                ),
+                verticalGap(gap: 8),
+                TextField(
+                  controller: locationCtrl,
+                  decoration: InputDecoration(
+                      labelStyle: TextStyle(color: PRIMARY_COLOR),
+                      labelText: "Enter Location"),
+                ),
+                verticalGap(gap: 8),
+                MaterialButton(
+                  color: PRIMARY_COLOR,
+                  onPressed: () async {
+
+                    String location = locationCtrl.text;
+                    onLocation(location);
+                    Navigator.pop(context);
+//                    if(location.isNotEmpty) {
+//
+//                    }
+                  },
+                  child: Text(
+                    "Add Location",
+                    style: TextStyle(color: Colors.white),
+                  ),
+                )
+              ],
+            ),
+          ),
+        ));
+  }
+
+  static void reLogin(BuildContext context, Function(bool) onSuccess) {
+    final locationCtrl = TextEditingController();
+
+    showDialog(
+        context: context,
+        child: Dialog(
+          child: Container(
+            padding: const EdgeInsets.all(12),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: <Widget>[
+                Text(
+                  "Authentication",
+                  style: TextStyle(
+                      fontWeight: FontWeight.bold, fontSize: FONT_MEDIUM),
+                ),
+               Column(
+                 mainAxisSize: MainAxisSize.min,
+                 children: [
+                   verticalGap(gap: 8),
+                   TextField(
+                     controller: locationCtrl,
+                     obscureText: true,
+                     decoration: InputDecoration(
+                         labelStyle: TextStyle(color: PRIMARY_COLOR),
+                         labelText: "Enter Password"),
+                   ),
+                   verticalGap(gap: 8),
+                   MaterialButton(
+                     color: PRIMARY_COLOR,
+                     onPressed: () async {
+
+                       //await ApiProvider.loginApi.login(email, password)
+
+                       String location = locationCtrl.text;
+                       onSuccess(true);
+                       Navigator.pop(context);
+//                    if(location.isNotEmpty) {
+//
+//                    }
+                     },
+                     child: Text(
+                       "Login",
+                       style: TextStyle(color: Colors.white),
+                     ),
+                   ),
+                 ],
+               ),
+                verticalGap(gap: 8),
+                Text("-- OR --"),
+                verticalGap(gap: 8),
+                Row(
+                  children: [
+                    FlatButton(
+                      color: Colors.redAccent,
+                      onPressed: () {
+
+                      },
+                      child: Text("Login with Gmail", style: TextStyle(color: Colors.white),),),
+                    horizontalGap(gap: 12),
+                    FlatButton(
+                      color: Colors.blueAccent,
+                      onPressed: () {
+
+                      },
+                      child: Text("Login with FB", style: TextStyle(color: Colors.white),), ),
+                  ],
+                ),
+
               ],
             ),
           ),
@@ -201,6 +324,52 @@ class DialogHelper {
                 Text(title, style: TextStyle(fontWeight: FontWeight.bold, fontSize:  FONT_MEDIUM),),
                 verticalGap(gap: 12),
                 Text(content, style: TextStyle(fontWeight: FontWeight.normal, fontSize:  FONT_SMALL, color: Colors.black54),),
+                verticalGap(gap: 25),
+                Divider(),
+                InkWell(
+                  onTap: (){
+                    onConfrim();
+                    Navigator.pop(context);
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.all(12),
+                    width: MATCH_PARENT,
+                    child: Center(child: Text(positiveButton, style: TextStyle(color: PRIMARY_COLOR, fontSize: 13, fontWeight: FontWeight.bold),)),
+                  ),
+                ),
+                Divider(),
+                InkWell(
+                  onTap: () {
+                    Navigator.pop(context);
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.all(12),
+                    width: MATCH_PARENT,
+                    child: InkWell(
+                      child: Center(child: Text(negativeButton, style: TextStyle(color: Colors.black, fontSize: 15, fontWeight: FontWeight.bold),)),
+                    ),
+                  ),
+                )
+              ],
+            ),
+          ),
+        ));
+  }
+
+
+  static void deleteAlertDialog(BuildContext context, {@required String title, @required content, String positiveButton, String negativeButton, @required Function() onConfrim }) {
+    showDialog(
+        context: context,
+        child: Dialog(
+          child: Container(
+            padding: const EdgeInsets.all(12),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: <Widget>[
+                Center(child: Text(title, textAlign: TextAlign.center, style: TextStyle(fontWeight: FontWeight.bold, color: Colors.red, fontSize:  FONT_MEDIUM),)),
+                verticalGap(gap: 12),
+                Center(child: Text(content, textAlign: TextAlign.center ,style: TextStyle(fontWeight: FontWeight.normal, fontSize:  FONT_SMALL, color: Colors.black54),)),
                 verticalGap(gap: 25),
                 Divider(),
                 InkWell(

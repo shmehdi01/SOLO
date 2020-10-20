@@ -106,7 +106,8 @@ class NotificationBody extends StatelessWidget {
                         } else {
                           final resp =
                               await ApiProvider.homeApi.fetchUserByID(id);
-                          goToPage(context, ProfilePage(resp.success, otherProfile: true, currentUser: SessionManager.currentUser,));
+                          Utils.openProfilePage(context, resp.success);
+                          //goToPage(context, ProfilePage(resp.success, otherProfile: true, currentUser: SessionManager.currentUser,));
                         }
                       }
                     },

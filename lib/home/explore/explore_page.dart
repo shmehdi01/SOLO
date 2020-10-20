@@ -1,9 +1,13 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:shimmer/shimmer.dart';
+import 'package:solo/database/dao/SearchKeywordDao.dart';
+import 'package:solo/database/entity/search_keywords.dart';
 import 'package:solo/hashtag/hash_tag_page.dart';
 import 'package:solo/home/profile/profile_page.dart';
+import 'package:solo/models/Collection.dart';
 import 'package:solo/models/post_model.dart';
 import 'package:solo/models/user.dart';
 import 'package:solo/network/api_provider.dart';
@@ -65,8 +69,10 @@ class _ExplorePageState extends State<ExplorePage> {
               return Center();
             }
 
-            if (snapshot.data.isEmpty)
-              return horizontalGap(gap: 8) ;
+            if (snapshot.data.isEmpty) {
+              debugPrint("No Trending tags");
+              return horizontalGap(gap: 8);
+            }
 
             return trendingCard(snapshot.data);
           },
@@ -185,7 +191,7 @@ class _ExplorePageState extends State<ExplorePage> {
                         ),
                         horizontalGap(gap: 4),
                         Text(
-                          "(${trendingTags[data[index]].length} posts)",
+                          "Latests (${trendingTags[data[index]].length} posts)",
                           style: TextStyle(
                               color: Colors.black54,
                               fontSize: 8,
@@ -249,7 +255,7 @@ class AllHashTagPageList extends StatelessWidget {
               goToPage(context, HashTagPage(tags));
             },
             title: Text(tags, style: TextStyle(color: Colors.blue, fontSize: FONT_NORMAL, fontWeight: FontWeight.bold),), subtitle:
-          Text("${trendingTags[tags].length} posts", style: TextStyle(color: Colors.black54, fontSize: FONT_SMALL),),);
+          Text("Latests ${trendingTags[tags].length} posts", style: TextStyle(color: Colors.black54, fontSize: FONT_SMALL),),);
         },),
       ),
     );
@@ -257,14 +263,48 @@ class AllHashTagPageList extends StatelessWidget {
 }
 
 
+enum SEARCH_TYPE {
+  ALL,
+  TOPICS,
+  PROFILES
+}
+
 class SearchUser extends SearchDelegate {
   final User _currentUser;
+  static SEARCH_TYPE search_type = SEARCH_TYPE.PROFILES;
+  final SearchKeywordDao searchKeywordDao = SearchKeywordDao();
 
-  SearchUser(this._currentUser);
+  SearchUser(this._currentUser) {
+    searchKeywordDao.getAll().then((value) {
+      print(value.length);
+    });
+  }
 
   Future<List<User>> searchUser(query) async {
     var list = await ApiProvider.exploreApi.searchUser(query: query);
     return list.success;
+  }
+
+  Future<List<User>> searchTopic(query) async {
+    var list = await ApiProvider.exploreApi.searchUser(query: query);
+    return list.success;
+  }
+
+  Future<List<User>> searchRecent() async {
+    List<SearchKeyword> keywords = await searchKeywordDao.getAllByType(SEARCH_TYPE.PROFILES.toString());
+    List<String> ids = [];
+    keywords.forEach((element) {
+      ids.add(element.keyword);
+    });
+
+    final snap = await Firestore.instance.collection(Collection.USER).where("id", whereIn: ids.length > 10 ? ids.sublist(0,10) : ids).getDocuments();
+
+    List<User> users = [];
+    snap.documents.forEach((element) {
+      users.add(User.fromMap(element.data));
+    });
+
+    return users.reversed.toList();
   }
 
   @override
@@ -297,8 +337,127 @@ class SearchUser extends SearchDelegate {
   @override
   Widget buildSuggestions(BuildContext context) {
     if (query.isEmpty) {
-      return SearchHomePage();
-    } else {
+      return StatefulBuilder(
+        builder: (BuildContext context, void Function(void Function()) setState) {
+          return FutureBuilder(
+            future: searchRecent(),
+            builder: (BuildContext context, AsyncSnapshot<List<User>> snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return Center(
+                  child: CircularProgressIndicator(),
+                );
+              }
+
+              if (snapshot.data == null) {
+                return Center(child: Text("Search User"));
+              }
+
+              return ListView.builder(
+                itemBuilder: (context, index) {
+                  return Container(
+                    color: Colors.white,
+                    padding: const EdgeInsets.all(8.0),
+                    margin: const EdgeInsets.only(bottom: 1),
+                    child: ListTile(
+                      onTap: () {
+                        Utils.openProfilePage(context, snapshot.data[index]);
+                      },
+                      trailing: IconButton(icon: Icon(Icons.close), onPressed: () async {
+                        await searchKeywordDao.delete(where: "keyword = ?", whereArgs: [snapshot.data[index].id]);
+                        setState((){});
+                      },),
+                      leading: userImage(imageUrl: snapshot.data[index].photoUrl),
+                      title: Text(snapshot.data[index].name),
+                      subtitle: snapshot.data[index].bio != null
+                          ? Text(snapshot.data[index].bio)
+                          : Container(),
+                    ),
+                  );
+                },
+                itemCount: snapshot.data.length,
+              );
+            },
+          );
+        },
+
+      );
+    }
+    else if(search_type == SEARCH_TYPE.PROFILES) {
+      return FutureBuilder(
+        future: searchUser(query),
+        builder: (BuildContext context, AsyncSnapshot<List<User>> snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return Center(
+              child: CircularProgressIndicator(),
+            );
+          }
+
+          if (snapshot.data == null) {
+            return Center(child: Text("No Result Found"));
+          }
+
+          return ListView.builder(
+            itemBuilder: (context, index) {
+              return Container(
+                color: Colors.white,
+                padding: const EdgeInsets.all(8.0),
+                margin: const EdgeInsets.only(bottom: 1),
+                child: ListTile(
+                  onTap: ()  {
+                    searchKeywordDao.insert(SearchKeyword(keyword: snapshot.data[index].id, type: search_type.toString(), timestamp: Utils.timestamp()));
+                    Utils.openProfilePage(context, snapshot.data[index]);
+                  },
+                  leading: userImage(imageUrl: snapshot.data[index].photoUrl),
+                  title: Text(snapshot.data[index].name),
+                  subtitle: snapshot.data[index].bio != null
+                      ? Text(snapshot.data[index].bio)
+                      : Container(),
+                ),
+              );
+            },
+            itemCount: snapshot.data.length,
+          );
+        },
+      );
+    }
+    else if(search_type == SEARCH_TYPE.TOPICS) {
+      return FutureBuilder(
+        future: searchTopic(query),
+        builder: (BuildContext context, AsyncSnapshot<List<User>> snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return Center(
+              child: CircularProgressIndicator(),
+            );
+          }
+
+          if (snapshot.data == null) {
+            return Center(child: Text("No Result Found"));
+          }
+
+          return ListView.builder(
+            itemBuilder: (context, index) {
+              return Container(
+                color: Colors.white,
+                padding: const EdgeInsets.all(8.0),
+                margin: const EdgeInsets.only(bottom: 1),
+                child: ListTile(
+                  onTap: () {
+                    Utils.openProfilePage(context, snapshot.data[index]);
+                  },
+                  leading: userImage(imageUrl: snapshot.data[index].photoUrl),
+                  title: Text(snapshot.data[index].name),
+                  subtitle: snapshot.data[index].bio != null
+                      ? Text(snapshot.data[index].bio)
+                      : Container(),
+                ),
+              );
+            },
+            itemCount: snapshot.data.length,
+          );
+        },
+      );
+    }
+    else  {
       return FutureBuilder(
         future: searchUser(query),
         builder: (BuildContext context, AsyncSnapshot<List<User>> snapshot) {
@@ -320,15 +479,16 @@ class SearchUser extends SearchDelegate {
                 margin: const EdgeInsets.only(bottom: 1),
                 child: ListTile(
                   onTap: () {
-                    Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (BuildContext context) => ProfilePage(
-                                  snapshot.data[index],
-                                  currentUser: _currentUser,
-                                  otherProfile: _currentUser.id !=
-                                      snapshot.data[index].id,
-                                )));
+                    Utils.openProfilePage(context, snapshot.data[index]);
+//                    Navigator.push(
+//                        context,
+//                        MaterialPageRoute(
+//                            builder: (BuildContext context) => ProfilePage(
+//                                  snapshot.data[index],
+//                                  currentUser: _currentUser,
+//                                  otherProfile: _currentUser.id !=
+//                                      snapshot.data[index].id,
+//                                )));
                   },
                   leading: userImage(imageUrl: snapshot.data[index].photoUrl),
                   title: Text(snapshot.data[index].name),
@@ -360,7 +520,18 @@ class _SearchHomePageState extends State<SearchHomePage>
   @override
   void initState() {
     _tabController = TabController(vsync: this, length: 3);
-
+    _tabController.addListener(() {
+      int index = _tabController.index;
+      if(index == 0) {
+        SearchUser.search_type = SEARCH_TYPE.ALL;
+      }
+      else if(index == 1) {
+        SearchUser.search_type = SEARCH_TYPE.TOPICS;
+      }
+      else {
+        SearchUser.search_type = SEARCH_TYPE.PROFILES;
+      }
+    });
     super.initState();
   }
 
@@ -377,6 +548,7 @@ class _SearchHomePageState extends State<SearchHomePage>
                 labelColor: darkGreyColor,
                 indicatorColor: darkGreyColor,
                 controller: _tabController,
+
                 tabs: [
                   Tab(
                     child: Text(

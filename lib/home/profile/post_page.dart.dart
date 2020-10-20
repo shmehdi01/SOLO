@@ -22,7 +22,7 @@ class PostPage extends StatelessWidget {
       builder: (BuildContext context, ProfileActionNotifier value, Widget child) {
         return Container(
             child: StreamBuilder(
-              stream: ApiProvider.homeApi.fetchPostsStream(onlyForID: user.id),
+              stream: value.loadPosts(user.id),
               builder: (BuildContext context, AsyncSnapshot<List<PostModel>> snapshot) {
 
                 if (!snapshot.hasData) {
@@ -38,7 +38,7 @@ class PostPage extends StatelessWidget {
                       ));
                 }
 
-                value.postCount = snapshot.data.length;
+                //value.postCount = snapshot.data.length;
 
                 if (snapshot.data.isEmpty) {
                   return Center(

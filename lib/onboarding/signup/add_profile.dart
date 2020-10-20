@@ -55,7 +55,7 @@ class AddProfilePage extends StatelessWidget {
                   Navigator.pushReplacement(
                       context,
                       MaterialPageRoute(
-                          builder: (BuildContext context) => HomePage(
+                          builder: (BuildContext context) => HomeDashboard(
                                 user: user,
                               )));
                 },

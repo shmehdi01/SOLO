@@ -14,6 +14,7 @@ import 'package:solo/home/profile/post_page.dart.dart';
 import 'package:solo/home/settings/setting_page.dart';
 import 'package:solo/models/user.dart';
 import 'package:solo/network/api_provider.dart';
+import 'package:solo/session_manager.dart';
 
 import '../../utils.dart';
 
@@ -30,42 +31,22 @@ class ProfilePage extends StatelessWidget {
       child: Scaffold(
           appBar: PreferredSize(
               child: Container(), preferredSize: Size.fromHeight(0)),
-          body: _ProfilePageState(this)),
-      create: (BuildContext context) => ProfileActionNotifier(
-          otherUser: otherProfile ? _user : null,
-          currentUser: otherProfile ? currentUser : _user),
+          body: _ProfileBody(this)),
+      create: (BuildContext context) => ProfileActionNotifier(otherUser: otherProfile ? _user : null, currentUser: otherProfile ? currentUser : _user),
     );
   }
 }
 
-class _ProfilePageState extends StatefulWidget {
+
+class _ProfileBody extends StatelessWidget {
+  final bannerHeight = 250.0;
   final ProfilePage widget;
 
-  _ProfilePageState(this.widget);
-
-  @override
-  __ProfilePageStateState createState() => __ProfilePageStateState();
-}
-
-class __ProfilePageStateState extends State<_ProfilePageState>
-    with WidgetsBindingObserver {
-  final bannerHeight = 250.0;
-
-  @override
-  void initState() {
-    WidgetsBinding.instance.addObserver(this);
-    super.initState();
-  }
-
-  @override
-  void dispose() {
-    WidgetsBinding.instance.removeObserver(this);
-    super.dispose();
-  }
+  _ProfileBody(this.widget);
 
   @override
   Widget build(BuildContext context) {
-    var notifier = Provider.of<ProfileActionNotifier>(context, listen: false);
+   // var notifier = Provider.of<ProfileActionNotifier>(context, listen: false);
     return Consumer<ProfileActionNotifier>(
       builder:
           (BuildContext context, ProfileActionNotifier value, Widget child) {
@@ -84,7 +65,7 @@ class __ProfilePageStateState extends State<_ProfilePageState>
                           padding: const EdgeInsets.all(8.0),
                           child: InkWell(
                             onTap: () {
-                              if(!widget.widget.otherProfile) {
+                              if(!widget.otherProfile) {
                                 goToPage(context, EditProfilePage(),fullScreenDialog: true);
                               }
                             },
@@ -94,10 +75,10 @@ class __ProfilePageStateState extends State<_ProfilePageState>
                               child: CircleAvatar(
                                 radius: 40,
                                 backgroundImage:
-                                    widget.widget._user.photoUrl == null
+                                    widget._user.photoUrl == null
                                         ? AssetImage("$IMAGE_ASSETS/default_dp.png")
                                         : CachedNetworkImageProvider(
-                                            widget.widget._user.photoUrl),
+                                            widget._user.photoUrl),
                               ),
                             ),
                           ),
@@ -112,7 +93,7 @@ class __ProfilePageStateState extends State<_ProfilePageState>
                                 height: 20,
                               ),
                               Text(
-                                "${widget.widget._user.name}",
+                                "${widget._user.name}",
                                 style: TextStyle(
                                     color: Colors.black,
                                     fontSize: FONT_LARGE,
@@ -121,18 +102,18 @@ class __ProfilePageStateState extends State<_ProfilePageState>
                               SizedBox(
                                 height: 5,
                               ),
-                              if(widget.widget._user.username != null && widget.widget._user.username.isNotEmpty)
+                              if(widget._user.username != null && widget._user.username.isNotEmpty)
                                 Text(
-                                "@${widget.widget._user.username}",
+                                "@${widget._user.username}",
                                 style: TextStyle(
                                     color: Colors.black54, fontSize: FONT_NORMAL),
                               ),
                               verticalGap(gap: 8),
-                              bioWidget()
+                              bioWidget(context, value)
                             ],
                           ),
                         ),
-                        if (!widget.widget.otherProfile)
+                        if (!widget.otherProfile)
                           IconButton(
                             icon: Icon(
                               Icons.settings,
@@ -144,7 +125,7 @@ class __ProfilePageStateState extends State<_ProfilePageState>
                           ),
                       ],
                     ),
-                    if (!widget.widget.otherProfile)
+                    if (!widget.otherProfile)
                       Positioned(
                         bottom: 10,
                         left: 70,
@@ -167,40 +148,56 @@ class __ProfilePageStateState extends State<_ProfilePageState>
                   ],
                 ),
                 Divider(),
-                widget.widget.otherProfile
-                    ? OutlineButton(
-                        onPressed: () {
-                          if (!value.isFollowing) {
-                            notifier.followUser(
-                                context,
-                                widget.widget.currentUser.id,
-                                widget.widget._user);
-                          } else {
-                            //UnFollow
-                            showAlertDialog(context, null,
-                                "Unfollow ${widget.widget._user.name} ?",
-                                actions: [
-                                  dialogButton(
-                                      buttonText: "Unfollow",
-                                      onPressed: () {
-                                        Navigator.pop(context);
-                                        notifier.unFollowUser(
-                                            value.followingConnection, context);
-                                      })
-                                ]);
-                          }
-                        },
-                        child: Text(value.isFollowing ? "Following" : "Follow"))
+                widget.otherProfile
+                    ? Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                      children: <Widget>[
+                        OutlineButton(
+                            onPressed: () {
+                              if (!value.isFollowing) {
+                                value.followUser(
+                                    context,
+                                    widget.currentUser.id,
+                                    widget._user);
+                              } else {
+                                //UnFollow
+                                showAlertDialog(context, null,
+                                    "Unfollow ${widget._user.name} ?",
+                                    actions: [
+                                      dialogButton(
+                                          buttonText: "Unfollow",
+                                          onPressed: () {
+                                            Navigator.pop(context);
+                                            value.unFollowUser(
+                                                value.followingConnection, context);
+                                          })
+                                    ]);
+                              }
+                            },
+                            child: Text(value.isFollowing ? "Following" : "Follow")),
+                        if(value.isFollowing) horizontalGap(gap: 12),
+                        if(value.isFollowing) OutlineButton(
+                            onPressed: () {
+                              Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                      builder: (BuildContext context) =>
+                                          ChatScreenPage(
+                                              SessionManager.currentUser, widget._user)));
+                            },
+                            child: Text("Message")),
+                      ],
+                    )
                     : Container(),
                 SizedBox(
-                  height: widget.widget.otherProfile ? 10 : 0,
+                  height: widget.otherProfile ? 10 : 0,
                 ),
 
                 Material(
                   elevation: 5,
                     child: tabSection(value)),
                 Expanded(
-                  child: getPage(value.getTopAction, value),
+                  child: value.getPage,
                 ),
               ],
             ),
@@ -214,19 +211,19 @@ class __ProfilePageStateState extends State<_ProfilePageState>
                 flexibleSpace: FlexibleSpaceBar(
                     collapseMode: CollapseMode.pin,
                     background: Container(
-                      child: widget.widget._user.bannerUrl != null  && !widget.widget.otherProfile ? null :  Center(child: FlatButton(onPressed: () {
+                      child: widget._user.bannerUrl == null  && widget.otherProfile == false ?  Center(child: FlatButton(onPressed: () {
                         ImagePickerHelper.showImagePickerDialog(context, (image)  async {
                           File cropped = await MyImageCropper.open(image);
                           value.changeCoverImage(context, cropped);
                         }, header: "Choose Cover Image");
                       },
-                      child: Text(" + Add New Cover"))),
+                      child: Text(" + Add New Cover"))) : null,
                       decoration: BoxDecoration(
                           image: DecorationImage(
-                              image: widget.widget._user.bannerUrl != null
+                              image: widget._user.bannerUrl != null
                                   ? CachedNetworkImageProvider(
-                                      widget.widget._user.bannerUrl)
-                                  : AssetImage(("$IMAGE_ASSETS/login_bg")),
+                                      widget._user.bannerUrl)
+                                  : AssetImage(("$IMAGE_ASSETS/solo_bg.png")),
                               fit: BoxFit.cover)),
                     )),
               ),
@@ -237,20 +234,6 @@ class __ProfilePageStateState extends State<_ProfilePageState>
     );
   }
 
-  Widget getPage(int index, ProfileActionNotifier notifier) {
-    var page;
-
-    if (index == 1)
-      page = PostPage(widget.widget._user);
-    else if (index == 2)
-      page = _Following(notifier.myFollowers, widget.widget._user,
-          widget.widget.otherProfile, widget.widget.currentUser);
-    else if (index == 3)
-      page = _Following(notifier.myFollowings, widget.widget._user,
-          widget.widget.otherProfile, widget.widget.currentUser);
-
-    return page;
-  }
 
   Widget tabSection(ProfileActionNotifier value) {
     return Container(
@@ -316,121 +299,36 @@ class __ProfilePageStateState extends State<_ProfilePageState>
     );
   }
 
-  Widget bioWidget() {
-    return widget.widget.otherProfile
-        ? widget.widget._user.bio != null
-        ? Text(widget.widget._user.bio)
+  Widget bioWidget(BuildContext context, ProfileActionNotifier value) {
+    return widget.otherProfile
+        ? widget._user.bio != null
+        ? Text(widget._user.bio)
         : Container()
-        : widget.widget._user.bio == null
+        : widget._user.bio == null
         ? OutlineButton(
         onPressed: () {
           DialogHelper.addBioDialog(context, "", (text) {
-            widget.widget._user.bio = text;
-            ApiProvider.profileApi
-                .updateBio(widget.widget._user, text);
-            setState(() {});
+            widget._user.bio = text;
+            value
+                .updateBio(widget._user, text);
+            //setState(() {});
           });
         },
         child: Text("+ Add Bio"))
         : InkWell(
       onTap: () {
         DialogHelper.addBioDialog(
-            context, widget.widget._user.bio, (text) {
-          widget.widget._user.bio = text;
-          ApiProvider.profileApi
-              .updateBio(widget.widget._user, text);
-          setState(() {});
+            context, widget._user.bio, (text) {
+          widget._user.bio = text;
+          value
+              .updateBio(widget._user, text);
+         // setState(() {});
         });
       },
       child: Text(
-        widget.widget._user.bio,
+        widget._user.bio,
         style: TextStyle(fontWeight: FontWeight.bold),
       ),
-    );
-  }
-}
-
-class _Following extends StatefulWidget {
-  final List<User> myFollowings;
-  List<bool> isFollowing = [];
-  ConnectionDao connectionDao = ConnectionDao();
-
-  final User _user;
-  final bool otherProfile;
-  final User currentUser;
-
-  User loggedInUser;
-
-  _Following(
-      this.myFollowings, this._user, this.otherProfile, this.currentUser) {
-    loggedInUser = otherProfile ? currentUser : _user;
-    create();
-  }
-
-  create() {
-//    this.myFollowings.forEach((user) async {
-//      print("check $user");
-//      //var resp = await ApiProvider.profileApi.isFollowing(loggedInUser, user);
-//      var con = connectionDao.isFollowing(loggedInUser.id, user.id);
-//      isFollowing.add(con != null);
-//    });
-  }
-
-  @override
-  __FollowingState createState() => __FollowingState();
-}
-
-class __FollowingState extends State<_Following> {
-  @override
-  Widget build(BuildContext context) {
-    var notifier = Provider.of<ProfileActionNotifier>(context, listen: false);
-
-    return Container(
-      child: ListView.builder(
-          itemCount: widget.myFollowings.length,
-          itemBuilder: (context, index) {
-            User user = widget.myFollowings[index];
-
-            return Container(
-              padding: const EdgeInsets.all(8),
-              child: ListTile(
-                onTap: () {
-                  Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (BuildContext context) => ProfilePage(
-                                user,
-                                otherProfile: user.id != widget.loggedInUser.id,
-                                currentUser: widget.loggedInUser,
-                              )));
-                },
-                leading: userImage(
-                    imageUrl: widget.myFollowings[index].photoUrl, radius: 20),
-                title: Text(
-                  widget.myFollowings[index].name,
-                  style: TextStyle(fontSize: FONT_NORMAL),
-                ),
-                trailing: widget.otherProfile
-                    ? widget.otherProfile &&
-                            user.id ==
-                                widget.loggedInUser
-                                    .id //CHECK IF OTHER PERSON SE WATCHING OWN PROFILE
-                        ? null
-                        : null
-                    : OutlineButton(
-                        onPressed: () {
-                          Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                  builder: (BuildContext context) =>
-                                      ChatScreenPage(
-                                          widget.loggedInUser, user)));
-                        },
-                        child: Text("Message"),
-                      ),
-              ),
-            );
-          }),
     );
   }
 }

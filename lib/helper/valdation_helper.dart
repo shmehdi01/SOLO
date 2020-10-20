@@ -7,8 +7,10 @@ class Validator {
   static const HASH_TAG_REGEX = r"#(\w+)";
   
   static const LINK_REGEX = r"https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,4}\b([-a-zA-Z0-9@:%_\+.~#?&//=]*)";
-  
-  
+
+  static const EMOJI_REGEX = r"[\u1000-\uFFFF]+";
+  static const EMOJI_REGEX2 = r"(\u00a9|\u00ae|[\u2000-\u3300]|\ud83c[\ud000-\udfff]|\ud83d[\ud000-\udfff]|\ud83e[\ud000-\udfff])";
+
 
   static bool isEmail(String email) {
     return RegExp(EMAIL_REGEX).hasMatch(email);
@@ -24,6 +26,15 @@ class Validator {
 
   static bool isUsername(String username) {
     return RegExp(USERNAME_REGEX).hasMatch(username);
+  }
+
+  static bool isEmoji(String text) {
+    return RegExp(r"\u2600-\u26FF").hasMatch(text);
+  }
+
+  static String getEmoji(String x) {
+    int e = int.parse(x.replaceFirst("U+", "0x"));
+    return String.fromCharCode(e);
   }
 
   static List<String> splitHashTags(String s) {

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:solo/models/block_model.dart';
 import 'package:solo/models/user.dart';
 import 'package:solo/network/api_provider.dart';
 
@@ -7,6 +8,7 @@ import '../../session_manager.dart';
 class ChatActionNotifier extends ChangeNotifier {
 
   final User currentUser;
+  final User receiver;
 
   List<User> _myFollowers = [];
   List<User> _myFollowings = [];
@@ -18,9 +20,19 @@ class ChatActionNotifier extends ChangeNotifier {
 
   bool get loader => _loader;
 
-  ChatActionNotifier(this.currentUser) {
+  Block block;
+  bool isBlockedByMe = false;
+
+  ChatActionNotifier(this.currentUser, {this.receiver}) {
     fetchFollowers();
     fetchFollowing();
+    checkForBlock();
+  }
+
+  void checkForBlock() async {
+    block = await ApiProvider.chatAPi.isBlocked(receiver.id);
+    isBlockedByMe = block.myID == currentUser.id;
+    notifyListeners();
   }
 
   void fetchFollowers() async {
@@ -55,6 +67,10 @@ class ChatActionNotifier extends ChangeNotifier {
       _loader = false;
       notifyListeners();
     }
+  }
 
+  void clearBlock() {
+    block = null;
+    notifyListeners();
   }
 }

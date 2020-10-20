@@ -20,6 +20,7 @@ abstract class BaseDao<E extends Entity> {
 
   Future<int> insert(E entity) async {
     var db = await provideDB;
+    print("Insert: ${entity.toMap()}");
     return await db.insert(provideTable, entity.toMap());
   }
 

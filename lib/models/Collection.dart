@@ -12,4 +12,6 @@ class Collection {
   static const String POSTS = "posts";
   static const String BANNERS_STORAGE = "banner";
   static const String REPORT = "reports";
+  static const String BLOCK = "blocks";
+  static const String SEARCH_KEYWORDS = "search_keywords";
 }

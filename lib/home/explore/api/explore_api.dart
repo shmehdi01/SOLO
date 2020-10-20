@@ -1,3 +1,5 @@
+import 'dart:collection';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:solo/models/Collection.dart';
@@ -93,5 +95,29 @@ class FirebaseExploreApi extends ExploreApi {
     });
 
     return ApiResponse<Map<String,List<PostModel>>>()..success = map;
+  }
+
+  @override
+  Future<ApiResponse<List<String>>> searchTopic({String query}) async {
+    final response = ApiResponse<List<String>>();
+
+    final doc = await Firestore.instance.collection(Collection.POSTS)
+    .where("hashTags", arrayContains: "#$query")
+    .getDocuments();
+
+    final map = HashMap<String,String>();
+
+    final list = <String>[];
+
+    doc.documents.forEach((element) {
+
+      final model = PostModel.fromJson(element.data);
+//
+//      if(!map.containsKey(element)) {
+//        list.add(element.);
+//      }
+    });
+
+    return response;
   }
 }

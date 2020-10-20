@@ -1,13 +1,17 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:solo/database/app_constants.dart';
 import 'package:solo/database/dao/ConnectionDao.dart';
 import 'package:solo/database/dao/UsereDao.dart';
 import 'package:solo/home/notifications/api/push_notification.dart';
+import 'package:solo/home/profile/post_page.dart.dart';
+import 'package:solo/home/profile/profile_user_page.dart';
 import 'package:solo/models/connections.dart';
 import 'package:solo/models/follow_detail.dart';
 import 'package:solo/models/notification_detail.dart';
+import 'package:solo/models/post_model.dart';
 import 'package:solo/models/user.dart';
 import 'package:solo/network/api_provider.dart';
 import 'package:solo/utils.dart';
@@ -17,20 +21,35 @@ import '../../session_manager.dart';
 class ProfileActionNotifier with ChangeNotifier {
   final User currentUser;
   final User otherUser;
+  User _user;
   ConnectionDao connectionDao = ConnectionDao();
   UserDao userDao = UserDao();
 
   ProfileActionNotifier(
       {@required this.currentUser, @required this.otherUser}) {
     refresh();
+    _user = otherUser != null? otherUser : currentUser;
+  }
+
+  Widget get getPage {
+    final index = getTopAction;
+    var page;
+
+    if (index == 1)
+      page = PostPage(_user);
+    else if (index == 2)
+      page = UserPage(myFollowers, otherUser != null, currentUser);
+    else if (index == 3)
+      page = UserPage(myFollowings,
+          otherUser != null, currentUser);
+
+    return page;
   }
 
   void refresh() {
     if (otherUser != null) {
       _checkIsFollowing(currentUser, otherUser);
     }
-
-    fetchPhotos();
     fetchFollowers();
     fetchFollowing();
   }
@@ -86,8 +105,6 @@ class ProfileActionNotifier with ChangeNotifier {
     notifyListeners();
   }
 
-  void fetchPhotos() async {}
-
   void fetchFollowers() async {
     var user = otherUser != null ? otherUser : currentUser;
     var resp = await ApiProvider.profileApi.getFollower(user);
@@ -132,6 +149,7 @@ class ProfileActionNotifier with ChangeNotifier {
       {String msg = "Hi, I want to connect with you",
       bool notifyPage = true}) async {
 
+
     var connection = Connection(
         follower: myID,
         following: other.id,
@@ -141,26 +159,25 @@ class ProfileActionNotifier with ChangeNotifier {
     var result = await ApiProvider.profileApi.followUser(connection);
 
     if (result.hasError) {
-
       showSnack(context, result.error.errorMsg);
     } else {
       if (notifyPage) {
         showSnack(context, "You are started to following ${other.name}");
         _isFollowing = true;
 
-        //INSERT CONNECTION INTO DB
-        connection.isSync = 1;
-        await connectionDao.insert(connection);
-
-        //CHECK IF USER NOT IN DB INSERT
-        var user = await userDao.findEntityByID(other.id);
-        if(user == null) {
-          print("User insering");
-          await userDao.insert(other);
-        }
-        else {
-          print("User was exist");
-        }
+//        //INSERT CONNECTION INTO DB
+//        connection.isSync = 1;
+//        await connectionDao.insert(connection);
+//
+//        //CHECK IF USER NOT IN DB INSERT
+//        var user = await userDao.findEntityByID(other.id);
+//        if(user == null) {
+//          print("User insering");
+//          await userDao.insert(other);
+//        }
+//        else {
+//          print("User was exist");
+//        }
 
         fetchFollowers();
         notifyListeners();
@@ -233,4 +250,19 @@ class ProfileActionNotifier with ChangeNotifier {
       notifyListeners();
     }
   }
+
+  Stream<List<PostModel>> loadPosts(String id) {
+    final s =  ApiProvider.homeApi.fetchPostsStream(onlyForID: id);
+    s.listen((event) {
+      _photoCount = event.length;
+    });
+    return s;
+  }
+
+  void updateBio(User user, String bio,) async {
+    await ApiProvider.profileApi
+        .updateBio(user, bio);
+    notifyListeners();
+  }
+
 }
